@@ -112,7 +112,7 @@ totalScore.textContent = game.total;
 feedback.textContent = text;
 }
 
-// --- PHYSICS ---
+// --- PHYSICS (flight only) ---
 function simulate(speed, launch, spin, wind){
 const windMs=wind*0.447;
 const g=9.81;
@@ -136,43 +136,24 @@ return {carry:x*0.1, pts};
 // --- EASING ---
 function easeOut(t){ return 1 - Math.pow(1 - t, 3); }
 
-// --- ANIMATION WITH BOUNCE ---
-function animateShot(pts, carryDist, totalDist, launch, spin){
+// --- ANIMATE FLIGHT + ROLL ---
+function animateShot(pts, carryDist, totalDist){
 
 const maxX = pts[pts.length-1].x || 1;
 const maxY = Math.max(...pts.map(p=>p.y),1);
 
 // scale flight
-let scaled = pts.map(p => ({
+const scaled = pts.map(p => ({
 x: 10 + (p.x/maxX)*350*(carryDist/totalDist),
 y: 140 - (p.y/maxY)*100
 }));
 
-// --- BOUNCE PHYSICS ---
-let last = scaled[scaled.length-1];
-
-// bounce height influenced by launch + spin
-let bounceHeight = 30 * (launch/15) * (2500/spin);
-let bounceDist = 40;
-
-for(let b=0;b<3;b++){
-for(let i=0;i<20;i++){
-let t = i/20;
-scaled.push({
-x: last.x + bounceDist*t,
-y: 140 - bounceHeight*Math.sin(Math.PI*t)
-});
-}
-last = scaled[scaled.length-1];
-bounceHeight *= 0.5;
-bounceDist *= 0.7;
-}
-
-// --- ROLL ---
-const rollPixels = 350*((totalDist-carryDist)/totalDist);
+// add rollout points
+const last = scaled[scaled.length-1];
+const rollPixels = 350 * ((totalDist - carryDist)/totalDist);
 for(let i=1;i<=30;i++){
 scaled.push({
-x: last.x + rollPixels*(i/30),
+x: last.x + (rollPixels * i/30),
 y: 140
 });
 }
@@ -183,7 +164,7 @@ path.setAttribute("d", d);
 path.setAttribute("opacity","1");
 
 // animate
-const duration = 1600;
+const duration = 1400;
 const start = performance.now();
 
 function frame(now){
@@ -217,14 +198,16 @@ const wind = +windSpeed.value;
 
 const sim = simulate(speed,launch,spin,wind);
 
-// rollout
-const rollout = sim.carry * 0.15 * mod.roll * (3000/spin);
+// --- rollout physics ---
+const rollFactor = mod.roll * (3000/spin);
+const rollout = sim.carry * 0.15 * rollFactor;
+
 const totalDist = sim.carry + rollout;
 
 game.strokesHole++;
 game.total++;
 
-animateShot(sim.pts, sim.carry, totalDist, launch, spin);
+animateShot(sim.pts, sim.carry, totalDist);
 
 setTimeout(()=>{
 
@@ -246,7 +229,7 @@ if(game.remaining<=0){
 setTimeout(nextHole,1000);
 }
 
-},1600);
+},1400);
 }
 
 // --- NEXT ---
