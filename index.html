@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jafur Golf Game</title>
+
+<style>
+body {
+    font-family: -apple-system, sans-serif;
+    margin:0; padding:20px;
+    background: linear-gradient(135deg,#0a0a0a,#1a1a2e);
+    color:#fff;
+}
+
+.title { text-align:center; font-size:2em; margin-bottom:10px; }
+
+.scoreboard {
+    background: rgba(0,191,255,0.1);
+    padding:15px;
+    border-radius:12px;
+    margin-bottom:20px;
+    text-align:center;
+}
+
+.slider { width:100%; }
+
+button {
+    margin-top:15px;
+    padding:12px 24px;
+    border:none;
+    border-radius:20px;
+    background:#00bfff;
+    color:white;
+    font-weight:bold;
+    font-size:16px;
+}
+
+#course {
+    margin-top:20px;
+    background:#111;
+    border-radius:12px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="title">⛳ Jafur Golf Game</div>
+
+<div class="scoreboard">
+    <div>Hole: <span id="holeNum">1</span> / 18</div>
+    <div>Distance: <span id="holeDist">---</span> yd</div>
+    <div>Remaining: <span id="remain">---</span> yd</div>
+    <div>Strokes (Hole): <span id="strokesHole">0</span></div>
+    <div>Total Score: <span id="totalScore">0</span></div>
+</div>
+
+<!-- Sliders -->
+Club Speed: <span id="clubSpeedVal">100</span><br>
+<input type="range" id="clubSpeed" class="slider" min="80" max="130" value="100"><br>
+
+Launch Angle: <span id="launchVal">12</span><br>
+<input type="range" id="launchAngle" class="slider" min="8" max="20" value="12"><br>
+
+Spin Rate: <span id="spinVal">2500</span><br>
+<input type="range" id="spinRate" class="slider" min="2000" max="3500" value="2500"><br>
+
+Wind: <span id="windVal">0</span><br>
+<input type="range" id="windSpeed" class="slider" min="-30" max="30" value="0"><br>
+
+<button onclick="launchShot()">🏌️ Launch</button>
+<button onclick="resetGame()">🔄 Reset</button>
+
+<!-- Course Display -->
+<svg id="course" viewBox="0 0 400 120">
+    <line x1="10" y1="100" x2="390" y2="100" stroke="#555"/>
+    <circle id="ball" cx="10" cy="100" r="5" fill="white"/>
+    <rect id="green" x="360" y="80" width="30" height="20" fill="green"/>
+</svg>
+
+<script>
+
+// --- GAME STATE ---
+const game = {
+    hole: 1,
+    distances: [410,530,165,390,420,210,560,440,180,400,520,170,385,430,200,550,445,175],
+    remaining: 0,
+    strokesHole: 0,
+    total: 0
+};
+
+const GREEN_RADIUS = 15;
+
+// --- INIT ---
+function startHole() {
+    game.remaining = game.distances[game.hole - 1];
+    game.strokesHole = 0;
+    updateUI();
+    moveBall(0);
+}
+
+function updateUI() {
+    document.getElementById("holeNum").textContent = game.hole;
+    document.getElementById("holeDist").textContent = game.distances[game.hole - 1];
+    document.getElementById("remain").textContent = Math.max(0, game.remaining).toFixed(0);
+    document.getElementById("strokesHole").textContent = game.strokesHole;
+    document.getElementById("totalScore").textContent = game.total;
+}
+
+// --- MOVE BALL VISUALLY ---
+function moveBall(progress) {
+    const x = 10 + progress * 350;
+    document.getElementById("ball").setAttribute("cx", x);
+}
+
+// --- PHYSICS (UNCHANGED CORE IDEA) ---
+function simulate(speed, launch, spin, wind) {
+    const windMs = wind * 0.447;
+    const g = 9.81;
+    const rho = 1.2;
+    const ballMass = 0.046;
+    const ballRadius = 0.021;
+
+    const v0 = speed * 0.447 * 1.48;
+    const theta = launch * Math.PI / 180;
+
+    let vx = v0 * Math.cos(theta);
+    let vy = v0 * Math.sin(theta);
+    let x = 0, y = 0;
+    const dt = 0.02;
+
+    for (let i=0;i<10000;i++) {
+        const relVx = vx - windMs;
+        const relSpd = Math.sqrt(relVx*relVx + vy*vy);
+
+        const drag = 0.5 * rho * relSpd * relSpd * Math.PI * ballRadius * ballRadius * 0.3;
+        const lift = 0.000012 * (spin * 2*Math.PI/60) * relSpd;
+
+        const ax = -(drag/ballMass)*(relVx/relSpd);
+        const ay = -(drag/ballMass)*(vy/relSpd) - g + lift/ballMass;
+
+        vx += ax * dt;
+        vy += ay * dt;
+        x += vx * dt;
+        y += vy * dt;
+
+        if (y < 0) break;
+    }
+
+    return x * 1.094 * 1.12; // yards total
+}
+
+// --- MAIN GAME LOGIC ---
+function launchShot() {
+    const speed = +clubSpeed.value;
+    const launch = +launchAngle.value;
+    const spin = +spinRate.value;
+    const wind = +windSpeed.value;
+
+    const distance = simulate(speed, launch, spin, wind);
+
+    game.remaining -= distance;
+    game.strokesHole++;
+    game.total++;
+
+    // update ball position
+    const progress = 1 - (game.remaining / game.distances[game.hole - 1]);
+    moveBall(Math.min(progress,1));
+
+    // check green
+    if (game.remaining <= GREEN_RADIUS) {
+        setTimeout(nextHole, 800);
+    }
+
+    updateUI();
+}
+
+// --- NEXT HOLE ---
+function nextHole() {
+    if (game.hole >= 18) {
+        alert("🏁 Round Complete!\nScore: " + game.total);
+        return;
+    }
+    game.hole++;
+    startHole();
+}
+
+// --- RESET ---
+function resetGame() {
+    game.hole = 1;
+    game.total = 0;
+    startHole();
+}
+
+// --- SLIDER LABELS ---
+clubSpeed.oninput = ()=> clubSpeedVal.textContent = clubSpeed.value;
+launchAngle.oninput = ()=> launchVal.textContent = launchAngle.value;
+spinRate.oninput = ()=> spinVal.textContent = spinRate.value;
+windSpeed.oninput = ()=> windVal.textContent = windSpeed.value;
+
+// start game
+startHole();
+
+</script>
+</body>
+</html>
