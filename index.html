@@ -46,7 +46,6 @@
     margin-bottom: 14px;
   }
 
-  /* SCOREBOARD */
   .scoreboard {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
@@ -76,7 +75,6 @@
     color: var(--accent);
   }
 
-  /* FEEDBACK */
   #feedback {
     text-align: center;
     font-size: 0.85rem;
@@ -86,7 +84,6 @@
     letter-spacing: 1px;
   }
 
-  /* COURSE SVG */
   #course {
     width: 100%;
     border-radius: 12px;
@@ -96,7 +93,6 @@
     background: #061020;
   }
 
-  /* CONTROLS */
   .controls {
     background: var(--panel);
     border: 1px solid #1e3a5f;
@@ -185,7 +181,6 @@
     border: 3px solid #0a1628;
   }
 
-  /* BUTTONS */
   .btn-row {
     display: flex;
     gap: 6px;
@@ -262,9 +257,7 @@
 
 <div id="feedback">Loading hole...</div>
 
-<!-- COURSE VIEW -->
 <svg id="course" viewBox="0 0 400 120">
-  <!-- Sky gradient -->
   <defs>
     <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%" stop-color="#061020"/>
@@ -276,22 +269,15 @@
     </linearGradient>
   </defs>
   <rect width="400" height="120" fill="url(#skyGrad)"/>
-  <!-- Ground -->
   <rect x="0" y="95" width="400" height="25" fill="url(#grassGrad)"/>
-  <!-- Green -->
   <ellipse cx="360" cy="95" rx="28" ry="8" fill="#52b788"/>
-  <!-- Flag -->
   <line x1="360" y1="60" x2="360" y2="95" stroke="#aaa" stroke-width="1.5"/>
   <polygon points="360,60 374,66 360,72" fill="#e07a5f"/>
-  <!-- Tee marker -->
   <rect x="8" y="88" width="6" height="7" rx="1" fill="#f4d35e" opacity="0.6"/>
-  <!-- Shot path -->
   <path id="shotPath" stroke="#f4d35e" fill="none" stroke-width="1.5" stroke-dasharray="4,3" opacity="0"/>
-  <!-- Ball -->
   <circle id="ball" cx="11" cy="95" r="5" fill="white" stroke="#ccc" stroke-width="0.5"/>
 </svg>
 
-<!-- CONTROLS -->
 <div class="controls">
   <div class="club-row">
     <button class="club-btn active" onclick="setClub('driver',this)">DRIVER</button>
@@ -331,7 +317,6 @@
 </div>
 
 <script>
-// --- State ---
 const DISTANCES = [410,530,165,390,420,210,560,440,180,400,520,170,385,430,200,550,445,175];
 
 const game = {
@@ -341,26 +326,23 @@ const game = {
   total: 0,
   busy: false,
   onGreen: false,
-  ballX: 11   // current ball SVG x position
+  ballX: 11
 };
 
 let selectedClub = 'driver';
 
-// --- Club Setup ---
 function setClub(club, el) {
   selectedClub = club;
   document.querySelectorAll('.club-btn').forEach(b => b.classList.remove('active'));
   el.classList.add('active');
 }
 
-// --- Club Modifiers ---
 function getClubMods() {
   if (selectedClub === 'driver') return { speedMult: 1.05, spinMult: 0.85, rollMult: 1.3 };
   if (selectedClub === 'iron')   return { speedMult: 0.95, spinMult: 1.05, rollMult: 1.0 };
   return                                 { speedMult: 0.80, spinMult: 1.20, rollMult: 0.6 };
 }
 
-// --- Physics Simulate ---
 function simulate(speedMph, launchDeg, spin, windMph) {
   const windMs = windMph * 0.447;
   const speedMs = speedMph * 0.44704;
@@ -387,18 +369,16 @@ function simulate(speedMph, launchDeg, spin, windMph) {
   return { carryYds, pts };
 }
 
-// --- Rollout ---
 function getRollout(carryYds, spin, rollMult) {
   return carryYds * 0.12 * rollMult * (2500 / spin);
 }
 
 function animateShot(pts, carryYds, totalYds, holeDist, onGreen, cb) {
-  const svgW = 390, svgGround = 95;
-  const scaleX = (svgW - 20) / holeDist;
+  const svgGround = 95;
+  const scaleX = (390 - 20) / holeDist;
   const startX = game.ballX;
   const landX  = startX + carryYds * scaleX;
   const endX   = startX + totalYds * scaleX;
-  // Clamp endX to SVG width
   const clampedEnd = Math.min(endX, 388);
 
   const maxY = Math.max(...pts.map(p => p.y), 1);
@@ -445,7 +425,6 @@ function animateShot(pts, carryYds, totalYds, holeDist, onGreen, cb) {
     if (t < 1) {
       requestAnimationFrame(frame);
     } else {
-      // Save final ball position for next shot
       game.ballX = clampedEnd;
       cb();
     }
@@ -453,7 +432,6 @@ function animateShot(pts, carryYds, totalYds, holeDist, onGreen, cb) {
   requestAnimationFrame(frame);
 }
 
-// --- UI ---
 function setFeedback(msg, color) {
   const el = document.getElementById('feedback');
   el.textContent = msg;
@@ -473,15 +451,14 @@ function setLaunchEnabled(enabled) {
   document.getElementById('launchBtn').disabled = !enabled;
 }
 
-// --- Start Hole ---
 function startHole() {
-  game.remaining    = DISTANCES[game.hole - 1];
-  game.strokesHole  = 0;
-  game.onGreen      = false;
-  game.busy         = false;
+  game.remaining   = DISTANCES[game.hole - 1];
+  game.strokesHole = 0;
+  game.onGreen     = false;
+  game.busy        = false;
+  game.ballX       = 11;
 
   document.getElementById('lastShot').textContent = '—';
-  game.ballX = 11;
   document.getElementById('ball').setAttribute('cx', 11);
   document.getElementById('ball').setAttribute('cy', 95);
   document.getElementById('shotPath').setAttribute('opacity', '0');
@@ -491,7 +468,6 @@ function startHole() {
   setLaunchEnabled(true);
 }
 
-// --- Finish Hole (putts added, show Next Hole button) ---
 function finishHole(msg) {
   setLaunchEnabled(false);
   const putts = Math.random() < 0.5 ? 1 : 2;
@@ -500,13 +476,11 @@ function finishHole(msg) {
   const puttMsg = putts === 1 ? '🎯 One-putt!' : '⛳ Two-putt.';
   setTimeout(() => {
     setFeedback(`${msg} ${puttMsg} Hole score: ${game.strokesHole + putts}`);
-    // Show Next Hole button so player can linger
     document.getElementById('nextBtn').style.display = 'block';
     document.getElementById('launchBtn').style.display = 'none';
   }, 400);
 }
 
-// --- Next Hole ---
 function goNextHole() {
   document.getElementById('nextBtn').style.display = 'none';
   document.getElementById('launchBtn').style.display = 'block';
@@ -518,17 +492,16 @@ function goNextHole() {
   startHole();
 }
 
-// --- Launch ---
 function launchShot() {
   if (game.busy) return;
   game.busy = true;
   setLaunchEnabled(false);
 
-  const mods    = getClubMods();
-  const speed   = +document.getElementById('clubSpeed').value   * mods.speedMult;
-  const launch  = +document.getElementById('launchAngle').value;
-  const spin    = +document.getElementById('spinRate').value    * mods.spinMult;
-  const wind    = +document.getElementById('windSpeed').value;
+  const mods   = getClubMods();
+  const speed  = +document.getElementById('clubSpeed').value  * mods.speedMult;
+  const launch = +document.getElementById('launchAngle').value;
+  const spin   = +document.getElementById('spinRate').value   * mods.spinMult;
+  const wind   = +document.getElementById('windSpeed').value;
 
   const { carryYds, pts } = simulate(speed, launch, spin, wind);
   const rollout  = getRollout(carryYds, spin, mods.rollMult);
@@ -542,9 +515,8 @@ function launchShot() {
 
   animateShot(pts, carryYds, totalYds, holeDist, false, () => {
     if (totalYds > game.remaining) {
-      // OVERSHOOT — penalty stroke, hole ends
       const over = (totalYds - game.remaining).toFixed(0);
-      game.total++; // penalty
+      game.total++;
       game.strokesHole++;
       updateScoreboard(totalYds);
       game.remaining = 0;
@@ -554,7 +526,6 @@ function launchShot() {
       updateScoreboard(totalYds);
 
       if (game.remaining <= 15) {
-        // ON THE GREEN (within ~15 yds = putting range)
         game.remaining = 0;
         updateScoreboard(totalYds);
         finishHole(`On the green! 🏌️`);
@@ -567,24 +538,21 @@ function launchShot() {
   });
 }
 
-// --- Reset ---
 function resetGame() {
   game.hole  = 1;
   game.total = 0;
   startHole();
 }
 
-// --- Sliders ---
 document.getElementById('clubSpeed').oninput  = e => document.getElementById('clubSpeedVal').textContent = e.target.value;
-document.getElementById('launchAngle').oninput = e => document.getElementById('launchVal').textContent    = e.target.value;
-document.getElementById('spinRate').oninput   = e => document.getElementById('spinVal').textContent      = e.target.value;
+document.getElementById('launchAngle').oninput = e => document.getElementById('launchVal').textContent   = e.target.value;
+document.getElementById('spinRate').oninput   = e => document.getElementById('spinVal').textContent     = e.target.value;
 document.getElementById('windSpeed').oninput  = e => {
   const v = +e.target.value;
   document.getElementById('windVal').textContent = v;
   document.getElementById('windDir').textContent = v > 0 ? '→' : v < 0 ? '←' : '—';
 };
 
-// --- Boot ---
 startHole();
 </script>
 </body>
