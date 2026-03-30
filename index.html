@@ -1,251 +1,236 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Jafur Golf Game</title>
-
-<style>
-body { font-family: -apple-system; background:#0a0a0a; color:#fff; padding:20px; }
-.scoreboard, .feedback { text-align:center; margin-bottom:10px; }
-.slider { width:100%; margin-bottom:10px; }
-button { padding:10px 20px; margin:5px; background:#00bfff; border:none; border-radius:10px; color:white; }
-#course { background:#111; margin-top:20px; border-radius:10px; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jafur Golf Game</title>
+    <style>
+        body { font-family: -apple-system, sans-serif; background:#0a0a0a; color:#fff; padding:20px; display: flex; flex-direction: column; align-items: center; }
+        .scoreboard { background: #222; padding: 15px; border-radius: 10px; margin-bottom: 10px; width: 100%; max-width: 500px; display: flex; justify-content: space-around; }
+        .feedback { color: #00bfff; font-weight: bold; height: 20px; margin-bottom: 10px; }
+        .controls { width: 100%; max-width: 500px; background: #1a1a1a; padding: 20px; border-radius: 10px; }
+        .slider-group { margin-bottom: 15px; }
+        .slider { width:100%; cursor: pointer; }
+        button { padding:10px 20px; background:#00bfff; border:none; border-radius:5px; color:white; font-weight: bold; cursor: pointer; }
+        button:hover { background: #0099cc; }
+        #course { background:#111; margin-top: 20px; border: 2px solid #333; border-radius: 10px; width: 100%; max-width: 600px; }
+        span { color: #00bfff; font-weight: bold; }
+    </style>
 </head>
-
 <body>
 
-<h2>⛳ Jafur Golf Game</h2>
+    <h2>⛳ Jafur Golf Game</h2>
 
-<div class="scoreboard">
-Hole <span id="holeNum"></span> |
-Distance <span id="holeDist"></span> yd |
-Remaining <span id="remain"></span> yd |
-Strokes <span id="strokesHole"></span> |
-Total <span id="totalScore"></span>
-</div>
+    <div class="scoreboard">
+        <div>Hole: <span id="holeNum">1</span></div>
+        <div>Par Dist: <span id="holeDist">410</span></div>
+        <div>To Pin: <span id="remain">410</span> yd</div>
+    </div>
+    <div class="scoreboard">
+        <div>Strokes: <span id="strokesHole">0</span></div>
+        <div>Total Score: <span id="totalScore">0</span></div>
+    </div>
 
-<div class="feedback" id="feedback"></div>
+    <div class="feedback" id="feedback">Ready for Tee Off!</div>
 
-<select id="club">
-<option value="driver">Driver</option>
-<option value="iron">Iron</option>
-<option value="wedge">Wedge</option>
-</select>
+    <div class="controls">
+        <label>Club: </label>
+        <select id="club">
+            <option value="driver">Driver (Power)</option>
+            <option value="iron">Iron (Balanced)</option>
+            <option value="wedge">Wedge (High Spin)</option>
+        </select>
+        <br><br>
 
-<br><br>
+        <div class="slider-group">
+            Speed: <span id="clubSpeedVal">100</span> mph
+            <input type="range" id="clubSpeed" class="slider" min="60" max="130" value="100">
+        </div>
+        <div class="slider-group">
+            Launch: <span id="launchVal">12</span>°
+            <input type="range" id="launchAngle" class="slider" min="8" max="45" value="12">
+        </div>
+        <div class="slider-group">
+            Spin: <span id="spinVal">2500</span> rpm
+            <input type="range" id="spinRate" class="slider" min="2000" max="8000" value="2500">
+        </div>
+        <div class="slider-group">
+            Wind: <span id="windVal">0</span> mph
+            <input type="range" id="windSpeed" class="slider" min="-30" max="30" value="0">
+        </div>
 
-Speed <span id="clubSpeedVal">100</span>
-<input type="range" id="clubSpeed" class="slider" min="80" max="130" value="100">
+        <button onclick="launchShot()">Launch Ball</button>
+        <button onclick="resetGame()" style="background: #444;">Reset Game</button>
+    </div>
 
-Launch <span id="launchVal">12</span>
-<input type="range" id="launchAngle" class="slider" min="8" max="20" value="12">
-
-Spin <span id="spinVal">2500</span>
-<input type="range" id="spinRate" class="slider" min="2000" max="3500" value="2500">
-
-Wind <span id="windVal">0</span>
-<input type="range" id="windSpeed" class="slider" min="-30" max="30" value="0">
-
-<button onclick="launchShot()">Launch</button>
-<button onclick="resetGame()">Reset</button>
-
-<svg id="course" viewBox="0 0 400 160">
-<line x1="10" y1="140" x2="390" y2="140" stroke="#555"/>
-<rect x="300" y="120" width="30" height="20" fill="green"/>
-<path id="path" stroke="#00bfff" fill="none" stroke-width="2" opacity="0"/>
-<circle id="ball" cx="10" cy="140" r="5" fill="white"/>
-</svg>
+    <svg id="course" viewBox="0 0 400 160">
+        <line x1="0" y1="140" x2="400" y2="140" stroke="#333" stroke-width="2"/>
+        <rect id="green" x="350" y="138" width="40" height="4" fill="#2ecc71"/>
+        <line x1="375" y1="138" x2="375" y2="110" stroke="white" stroke-width="1"/>
+        <rect x="375" y="110" width="10" height="7" fill="red"/>
+        
+        <path id="path" stroke="#00bfff" fill="none" stroke-width="1" opacity="0.3" stroke-dasharray="4"/>
+        <circle id="ball" cx="20" cy="140" r="4" fill="white"/>
+    </svg>
 
 <script>
+const PIXELS_PER_YARD = 0.8; 
+const START_X = 20;
+const GROUND_Y = 140;
 
-// --- DOM ---
-const holeNum = document.getElementById("holeNum");
-const holeDist = document.getElementById("holeDist");
-const remain = document.getElementById("remain");
-const strokesHole = document.getElementById("strokesHole");
-const totalScore = document.getElementById("totalScore");
-const feedback = document.getElementById("feedback");
-
-const clubSelect = document.getElementById("club");
-const clubSpeed = document.getElementById("clubSpeed");
-const launchAngle = document.getElementById("launchAngle");
-const spinRate = document.getElementById("spinRate");
-const windSpeed = document.getElementById("windSpeed");
-
-const ball = document.getElementById("ball");
-const path = document.getElementById("path");
-
-// --- GAME ---
 const game = {
-hole:1,
-distances:[410,530,165,390,420,210,560,440,180,400,520,170,385,430,200,550,445,175],
-remaining:0,
-strokesHole:0,
-total:0
+    hole: 1,
+    distances: [410, 530, 165, 390, 420, 210, 560, 440, 180],
+    remaining: 0,
+    strokesHole: 0,
+    total: 0,
+    ballX: START_X // Visual position
 };
 
-// --- CLUB ---
-function applyClub(speed, spin){
-const club = clubSelect.value;
-if(club==="driver") return {speed:speed*1.05, spin:spin*0.85};
-if(club==="iron") return {speed:speed*0.95, spin:spin*1.05};
-return {speed:speed*0.8, spin:spin*1.2};
+function startHole() {
+    game.remaining = game.distances[game.hole - 1];
+    game.strokesHole = 0;
+    game.ballX = START_X;
+    updateUI(`Hole ${game.hole}: ${game.remaining} yards to go.`);
+    moveBallVisual(START_X, GROUND_Y);
 }
 
-// --- INIT ---
-function startHole(){
-game.remaining = game.distances[game.hole-1];
-game.strokesHole = 0;
-updateUI(`Distance to green: ${game.remaining.toFixed(0)} yd`);
-moveBall(0);
+function updateUI(msg) {
+    document.getElementById("holeNum").textContent = game.hole;
+    document.getElementById("holeDist").textContent = game.distances[game.hole - 1];
+    document.getElementById("remain").textContent = Math.abs(game.remaining).toFixed(0);
+    document.getElementById("strokesHole").textContent = game.strokesHole;
+    document.getElementById("totalScore").textContent = game.total;
+    if (msg) document.getElementById("feedback").textContent = msg;
 }
 
-// --- UI ---
-function updateUI(text=""){
-holeNum.textContent = game.hole;
-holeDist.textContent = game.distances[game.hole-1];
-remain.textContent = Math.max(0,game.remaining).toFixed(0);
-strokesHole.textContent = game.strokesHole;
-totalScore.textContent = game.total;
-feedback.textContent = text;
+function moveBallVisual(x, y) {
+    const ball = document.getElementById("ball");
+    ball.setAttribute("cx", x);
+    ball.setAttribute("cy", y);
 }
 
-// --- PHYSICS ---
-function simulate(speed, launch, spin, wind){
-const windMs=wind*0.447;
-const g=9.81;
-let vx=speed*Math.cos(launch*Math.PI/180);
-let vy=speed*Math.sin(launch*Math.PI/180);
-let x=0,y=0;
-const pts=[];
-
-for(let i=0;i<500;i++){
-pts.push({x,y});
-vx -= 0.01*(vx-windMs);
-vy -= 0.01*vy + g*0.02;
-x += vx;
-y += vy;
-if(y<0) break;
+function applyClub(speed, spin) {
+    const club = document.getElementById("club").value;
+    if (club === "driver") return { speed: speed * 1.1, spin: spin * 0.8, roll: 1.5 };
+    if (club === "iron") return { speed: speed * 0.9, spin: spin * 1.0, roll: 0.8 };
+    return { speed: speed * 0.6, spin: spin * 1.5, roll: 0.2 };
 }
 
-return {dist:x*0.1, pts};
+function simulate(speed, launch, spin, wind) {
+    const windMs = wind * 0.447;
+    const g = 9.81;
+    let vx = (speed * 0.447) * Math.cos(launch * Math.PI / 180);
+    let vy = (speed * 0.447) * Math.sin(launch * Math.PI / 180);
+    let x = 0, y = 0;
+    const pts = [];
+
+    // Simple Euler integration for flight
+    for (let i = 0; i < 1000; i++) {
+        pts.push({ x, y });
+        vx -= 0.005 * (vx - windMs); // Drag + Wind
+        vy -= 0.005 * vy + g * 0.01;  // Drag + Gravity
+        x += vx * 0.1;
+        y += vy * 0.1;
+        if (y < 0) break;
+    }
+    return { carry: x, pts };
 }
 
-// --- EASING FUNCTION ---
-function easeOut(t){
-return 1 - Math.pow(1 - t, 3);
+function launchShot() {
+    let baseSpeed = +document.getElementById("clubSpeed").value;
+    let baseSpin = +document.getElementById("spinRate").value;
+    const stats = applyClub(baseSpeed, baseSpin);
+    
+    const sim = simulate(stats.speed, +document.getElementById("launchAngle").value, stats.spin, +document.getElementById("windSpeed").value);
+    
+    const totalDist = sim.carry + (sim.carry * 0.2 * stats.roll);
+    game.strokesHole++;
+    game.total++;
+
+    animateShot(sim.pts, totalDist);
+
+    setTimeout(() => {
+        game.remaining -= totalDist;
+        
+        if (Math.abs(game.remaining) < 5) {
+            updateUI("In the hole! Great shot.");
+            setTimeout(nextHole, 1500);
+        } else {
+            const direction = game.remaining > 0 ? "short" : "long";
+            updateUI(`You are ${Math.abs(game.remaining).toFixed(0)} yd ${direction} of the pin.`);
+            // Reset ball to start visual if still far, or keep moving it? 
+            // For simplicity, we reset visual but update "remaining"
+            game.ballX = START_X; 
+            moveBallVisual(START_X, GROUND_Y);
+        }
+    }, 1800);
 }
 
-// --- SMOOTH ANIMATION ---
-function animate(pts){
+function animateShot(pts, totalDist) {
+    const path = document.getElementById("path");
+    const ball = document.getElementById("ball");
+    
+    // Scale points to SVG space
+    const scaled = pts.map(p => ({
+        x: START_X + (p.x * PIXELS_PER_YARD),
+        y: GROUND_Y - (p.y * PIXELS_PER_YARD)
+    }));
 
-const maxX = pts[pts.length-1].x || 1;
-const maxY = Math.max(...pts.map(p=>p.y),1);
+    // Draw trajectory
+    const d = scaled.map((p, i) => `${i === 0 ? "M" : "L"}${p.x},${p.y}`).join(" ");
+    path.setAttribute("d", d);
+    path.setAttribute("opacity", "0.5");
 
-const scaled = pts.map(p => ({
-x: 10 + (p.x/maxX)*350,
-y: 140 - (p.y/maxY)*100
-}));
+    const duration = 1500;
+    const start = performance.now();
 
-// draw path
-const d = scaled.map((p,i)=>`${i?"L":"M"}${p.x},${p.y}`).join(" ");
-path.setAttribute("d", d);
-path.setAttribute("opacity","1");
+    function frame(now) {
+        let t = (now - start) / duration;
+        if (t > 1) t = 1;
 
-const duration = 1200;
-const start = performance.now();
+        const idx = Math.floor(t * (scaled.length - 1));
+        const p = scaled[idx];
+        
+        // When flight ends, slide to total distance (roll)
+        if (t < 0.8) {
+            moveBallVisual(p.x, p.y);
+        } else {
+            const rollT = (t - 0.8) / 0.2;
+            const finalX = START_X + (totalDist * PIXELS_PER_YARD);
+            const rollX = scaled[scaled.length-1].x + (finalX - scaled[scaled.length-1].x) * rollT;
+            moveBallVisual(rollX, GROUND_Y);
+        }
 
-function frame(now){
-let t = (now - start) / duration;
-if(t > 1) t = 1;
-
-const eased = easeOut(t);
-const index = Math.floor(eased * (scaled.length - 1));
-const p = scaled[index];
-
-ball.setAttribute("cx", p.x);
-ball.setAttribute("cy", p.y);
-
-if(t < 1){
-requestAnimationFrame(frame);
-}
-}
-
-requestAnimationFrame(frame);
-}
-
-// --- MAIN ---
-function launchShot(){
-
-let speed = +clubSpeed.value;
-let spin = +spinRate.value;
-const mod = applyClub(speed,spin);
-speed = mod.speed;
-spin = mod.spin;
-
-const launch = +launchAngle.value;
-const wind = +windSpeed.value;
-
-const sim = simulate(speed,launch,spin,wind);
-const shot = sim.dist;
-
-game.strokesHole++;
-game.total++;
-
-animate(sim.pts);
-
-setTimeout(()=>{
-
-const prev = game.remaining;
-
-if(shot > prev){
-const over = shot-prev;
-game.total++;
-game.strokesHole++;
-game.remaining = 0;
-updateUI(`Long by ${over.toFixed(0)} yd`);
-}
-else{
-game.remaining -= shot;
-updateUI(`Distance to green: ${game.remaining.toFixed(0)} yd`);
+        if (t < 1) requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
 }
 
-if(game.remaining<=0){
-setTimeout(nextHole,1000);
+function nextHole() {
+    if (game.hole >= game.distances.length) {
+        alert("🏁 Round Complete! Total Strokes: " + game.total);
+        resetGame();
+    } else {
+        game.hole++;
+        startHole();
+    }
 }
 
-},1200);
+function resetGame() {
+    game.hole = 1;
+    game.total = 0;
+    startHole();
 }
 
-// --- NEXT ---
-function nextHole(){
-if(game.hole>=18){
-alert("Round Complete! Score: "+game.total);
-return;
-}
-game.hole++;
+// Slider listeners
+document.getElementById("clubSpeed").oninput = (e) => document.getElementById("clubSpeedVal").textContent = e.target.value;
+document.getElementById("launchAngle").oninput = (e) => document.getElementById("launchVal").textContent = e.target.value;
+document.getElementById("spinRate").oninput = (e) => document.getElementById("spinVal").textContent = e.target.value;
+document.getElementById("windSpeed").oninput = (e) => document.getElementById("windVal").textContent = e.target.value;
+
 startHole();
-}
-
-// --- RESET ---
-function resetGame(){
-game.hole=1;
-game.total=0;
-startHole();
-}
-
-// --- SLIDERS ---
-clubSpeed.oninput=()=>clubSpeedVal.textContent=clubSpeed.value;
-launchAngle.oninput=()=>launchVal.textContent=launchAngle.value;
-spinRate.oninput=()=>spinVal.textContent=spinRate.value;
-windSpeed.oninput=()=>windVal.textContent=windSpeed.value;
-
-// start
-startHole();
-
 </script>
-
 </body>
 </html>
+
