@@ -89,9 +89,9 @@ total:0
 // --- CLUB ---
 function applyClub(speed, spin){
 const club = clubSelect.value;
-if(club==="driver") return {speed:speed*1.05, spin:spin*0.85, roll:1.3};
-if(club==="iron") return {speed:speed*0.95, spin:spin*1.05, roll:1.0};
-return {speed:speed*0.8, spin:spin*1.2, roll:0.6};
+if(club==="driver") return {speed:speed*1.05, spin:spin*0.85};
+if(club==="iron") return {speed:speed*0.95, spin:spin*1.05};
+return {speed:speed*0.8, spin:spin*1.2};
 }
 
 // --- INIT ---
@@ -112,7 +112,7 @@ totalScore.textContent = game.total;
 feedback.textContent = text;
 }
 
-// --- PHYSICS (flight only) ---
+// --- PHYSICS ---
 function simulate(speed, launch, spin, wind){
 const windMs=wind*0.447;
 const g=9.81;
@@ -130,56 +130,49 @@ y += vy;
 if(y<0) break;
 }
 
-return {carry:x*0.1, pts};
+return {dist:x*0.1, pts};
 }
 
-// --- EASING ---
-function easeOut(t){ return 1 - Math.pow(1 - t, 3); }
+// --- EASING FUNCTION ---
+function easeOut(t){
+return 1 - Math.pow(1 - t, 3);
+}
 
-// --- ANIMATE FLIGHT + ROLL ---
-function animateShot(pts, carryDist, totalDist){
+// --- SMOOTH ANIMATION ---
+function animate(pts){
 
 const maxX = pts[pts.length-1].x || 1;
 const maxY = Math.max(...pts.map(p=>p.y),1);
 
-// scale flight
 const scaled = pts.map(p => ({
-x: 10 + (p.x/maxX)*350*(carryDist/totalDist),
+x: 10 + (p.x/maxX)*350,
 y: 140 - (p.y/maxY)*100
 }));
-
-// add rollout points
-const last = scaled[scaled.length-1];
-const rollPixels = 350 * ((totalDist - carryDist)/totalDist);
-for(let i=1;i<=30;i++){
-scaled.push({
-x: last.x + (rollPixels * i/30),
-y: 140
-});
-}
 
 // draw path
 const d = scaled.map((p,i)=>`${i?"L":"M"}${p.x},${p.y}`).join(" ");
 path.setAttribute("d", d);
 path.setAttribute("opacity","1");
 
-// animate
-const duration = 1400;
+const duration = 1200;
 const start = performance.now();
 
 function frame(now){
-let t = (now-start)/duration;
-if(t>1) t=1;
+let t = (now - start) / duration;
+if(t > 1) t = 1;
 
 const eased = easeOut(t);
-const index = Math.floor(eased*(scaled.length-1));
+const index = Math.floor(eased * (scaled.length - 1));
 const p = scaled[index];
 
 ball.setAttribute("cx", p.x);
 ball.setAttribute("cy", p.y);
 
-if(t<1) requestAnimationFrame(frame);
+if(t < 1){
+requestAnimationFrame(frame);
 }
+}
+
 requestAnimationFrame(frame);
 }
 
@@ -188,7 +181,6 @@ function launchShot(){
 
 let speed = +clubSpeed.value;
 let spin = +spinRate.value;
-
 const mod = applyClub(speed,spin);
 speed = mod.speed;
 spin = mod.spin;
@@ -197,31 +189,26 @@ const launch = +launchAngle.value;
 const wind = +windSpeed.value;
 
 const sim = simulate(speed,launch,spin,wind);
-
-// --- rollout physics ---
-const rollFactor = mod.roll * (3000/spin);
-const rollout = sim.carry * 0.15 * rollFactor;
-
-const totalDist = sim.carry + rollout;
+const shot = sim.dist;
 
 game.strokesHole++;
 game.total++;
 
-animateShot(sim.pts, sim.carry, totalDist);
+animate(sim.pts);
 
 setTimeout(()=>{
 
 const prev = game.remaining;
 
-if(totalDist > prev){
-const over = totalDist - prev;
+if(shot > prev){
+const over = shot-prev;
 game.total++;
 game.strokesHole++;
 game.remaining = 0;
 updateUI(`Long by ${over.toFixed(0)} yd`);
 }
 else{
-game.remaining -= totalDist;
+game.remaining -= shot;
 updateUI(`Distance to green: ${game.remaining.toFixed(0)} yd`);
 }
 
@@ -229,13 +216,13 @@ if(game.remaining<=0){
 setTimeout(nextHole,1000);
 }
 
-},1400);
+},1200);
 }
 
 // --- NEXT ---
 function nextHole(){
 if(game.hole>=18){
-alert("🏁 Round Complete! Score: "+game.total);
+alert("Round Complete! Score: "+game.total);
 return;
 }
 game.hole++;
@@ -255,6 +242,7 @@ launchAngle.oninput=()=>launchVal.textContent=launchAngle.value;
 spinRate.oninput=()=>spinVal.textContent=spinRate.value;
 windSpeed.oninput=()=>windVal.textContent=windSpeed.value;
 
+// start
 startHole();
 
 </script>
