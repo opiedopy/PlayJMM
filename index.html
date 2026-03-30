@@ -1,246 +1,554 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jafur Golf Game - Pro Rules</title>
-    <style>
-        body { font-family: -apple-system, sans-serif; background:#0a0a0a; color:#fff; padding:20px; display: flex; flex-direction: column; align-items: center; }
-        .scoreboard { background: #222; padding: 15px; border-radius: 10px; margin-bottom: 10px; width: 100%; max-width: 500px; display: flex; justify-content: space-around; border: 1px solid #444; }
-        .feedback { color: #ffcc00; font-weight: bold; height: 25px; margin-bottom: 10px; font-size: 1.1em; }
-        .controls { width: 100%; max-width: 500px; background: #1a1a1a; padding: 20px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        .slider-group { margin-bottom: 15px; }
-        .slider { width:100%; cursor: pointer; accent-color: #00bfff; }
-        button { padding:12px 24px; background:#00bfff; border:none; border-radius:5px; color:white; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        button:hover { background: #00d4ff; transform: scale(1.05); }
-        #course { background: linear-gradient(#111, #1a1a1a); margin-top: 20px; border: 2px solid #333; border-radius: 10px; width: 100%; max-width: 800px; }
-        span { color: #00bfff; font-weight: bold; }
-        .penalty { color: #ff4444; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jafur Golf Game</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&display=swap');
+
+  :root {
+    --green: #2d6a4f;
+    --fairway: #40916c;
+    --sky: #0a1628;
+    --accent: #f4d35e;
+    --red: #e07a5f;
+    --white: #f0ead6;
+    --panel: #0f1f36;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Mono', monospace;
+    background: var(--sky);
+    color: var(--white);
+    min-height: 100vh;
+    padding: 16px;
+    max-width: 520px;
+    margin: 0 auto;
+  }
+
+  h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.4rem;
+    letter-spacing: 3px;
+    color: var(--accent);
+    text-align: center;
+    margin-bottom: 4px;
+  }
+
+  .subtitle {
+    text-align: center;
+    font-size: 0.7rem;
+    color: #7a9cc0;
+    letter-spacing: 2px;
+    margin-bottom: 14px;
+  }
+
+  /* SCOREBOARD */
+  .scoreboard {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+
+  .stat {
+    background: var(--panel);
+    border: 1px solid #1e3a5f;
+    border-radius: 8px;
+    padding: 8px 4px;
+    text-align: center;
+  }
+
+  .stat-label {
+    font-size: 0.55rem;
+    color: #7a9cc0;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 3px;
+  }
+
+  .stat-val {
+    font-size: 1.2rem;
+    font-weight: 500;
+    color: var(--accent);
+  }
+
+  /* FEEDBACK */
+  #feedback {
+    text-align: center;
+    font-size: 0.85rem;
+    min-height: 24px;
+    margin-bottom: 10px;
+    color: #aed9e0;
+    letter-spacing: 1px;
+  }
+
+  /* COURSE SVG */
+  #course {
+    width: 100%;
+    border-radius: 12px;
+    border: 1px solid #1e3a5f;
+    margin-bottom: 12px;
+    display: block;
+    background: #061020;
+  }
+
+  /* CONTROLS */
+  .controls {
+    background: var(--panel);
+    border: 1px solid #1e3a5f;
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 12px;
+  }
+
+  .club-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .club-btn {
+    flex: 1;
+    padding: 8px 0;
+    background: #0a1628;
+    border: 1px solid #1e3a5f;
+    border-radius: 8px;
+    color: #7a9cc0;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: all 0.15s;
+  }
+
+  .club-btn.active {
+    background: var(--accent);
+    color: #0a1628;
+    border-color: var(--accent);
+    font-weight: 700;
+  }
+
+  .slider-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+
+  .slider-label {
+    font-size: 0.65rem;
+    letter-spacing: 1px;
+    color: #7a9cc0;
+    width: 56px;
+    text-transform: uppercase;
+  }
+
+  .slider-val {
+    font-size: 0.75rem;
+    color: var(--accent);
+    width: 36px;
+    text-align: right;
+  }
+
+  input[type=range] {
+    flex: 1;
+    -webkit-appearance: none;
+    height: 4px;
+    background: #1e3a5f;
+    border-radius: 2px;
+    outline: none;
+  }
+
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+  }
+
+  /* BUTTONS */
+  .btn-row {
+    display: flex;
+    gap: 8px;
+  }
+
+  .btn {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.1s;
+  }
+
+  .btn:active { transform: scale(0.97); }
+
+  .btn-launch {
+    background: var(--accent);
+    color: #0a1628;
+  }
+
+  .btn-reset {
+    background: #1e3a5f;
+    color: var(--white);
+  }
+
+  .btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .wind-dir {
+    font-size: 0.9rem;
+  }
+</style>
 </head>
 <body>
 
-    <h2>⛳ Jafur Golf Game</h2>
+<h2>⛳ JAFUR GOLF</h2>
+<div class="subtitle">18 HOLE STROKE PLAY</div>
 
-    <div class="scoreboard">
-        <div>Hole: <span id="holeNum">1</span></div>
-        <div>Hole Length: <span id="holeDist">410</span> yd</div>
-        <div>Remaining: <span id="remain">410</span> yd</div>
-    </div>
-    <div class="scoreboard">
-        <div>Strokes: <span id="strokesHole">0</span></div>
-        <div>Total Score: <span id="totalScore">0</span></div>
-    </div>
+<div class="scoreboard">
+  <div class="stat">
+    <div class="stat-label">Hole</div>
+    <div class="stat-val" id="holeNum">1</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">Dist</div>
+    <div class="stat-val" id="holeDist">—</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">Left</div>
+    <div class="stat-val" id="remain">—</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">Score</div>
+    <div class="stat-val" id="totalScore">0</div>
+  </div>
+</div>
 
-    <div class="feedback" id="feedback">Ready to Tee Off</div>
+<div id="feedback">Loading hole...</div>
 
-    <div class="controls">
-        <label>Club Selection: </label>
-        <select id="club">
-            <option value="driver">Driver</option>
-            <option value="iron">Iron</option>
-            <option value="wedge">Wedge</option>
-        </select>
-        <br><br>
+<!-- COURSE VIEW -->
+<svg id="course" viewBox="0 0 400 120">
+  <!-- Sky gradient -->
+  <defs>
+    <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#061020"/>
+      <stop offset="100%" stop-color="#0d2137"/>
+    </linearGradient>
+    <linearGradient id="grassGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2d6a4f"/>
+      <stop offset="100%" stop-color="#1b4332"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="120" fill="url(#skyGrad)"/>
+  <!-- Ground -->
+  <rect x="0" y="95" width="400" height="25" fill="url(#grassGrad)"/>
+  <!-- Green -->
+  <ellipse cx="360" cy="95" rx="28" ry="8" fill="#52b788"/>
+  <!-- Flag -->
+  <line x1="360" y1="60" x2="360" y2="95" stroke="#aaa" stroke-width="1.5"/>
+  <polygon points="360,60 374,66 360,72" fill="#e07a5f"/>
+  <!-- Tee marker -->
+  <rect x="8" y="88" width="6" height="7" rx="1" fill="#f4d35e" opacity="0.6"/>
+  <!-- Shot path -->
+  <path id="shotPath" stroke="#f4d35e" fill="none" stroke-width="1.5" stroke-dasharray="4,3" opacity="0"/>
+  <!-- Ball -->
+  <circle id="ball" cx="11" cy="95" r="5" fill="white" stroke="#ccc" stroke-width="0.5"/>
+</svg>
 
-        <div class="slider-group">Speed: <span id="clubSpeedVal">100</span> mph <input type="range" id="clubSpeed" class="slider" min="60" max="130" value="100"></div>
-        <div class="slider-group">Launch: <span id="launchVal">12</span>° <input type="range" id="launchAngle" class="slider" min="8" max="45" value="12"></div>
-        <div class="slider-group">Spin: <span id="spinVal">2500</span> rpm <input type="range" id="spinRate" class="slider" min="2000" max="8000" value="2500"></div>
-        <div class="slider-group">Wind: <span id="windVal">0</span> mph <input type="range" id="windSpeed" class="slider" min="-30" max="30" value="0"></div>
+<!-- CONTROLS -->
+<div class="controls">
+  <div class="club-row">
+    <button class="club-btn active" onclick="setClub('driver',this)">DRIVER</button>
+    <button class="club-btn" onclick="setClub('iron',this)">IRON</button>
+    <button class="club-btn" onclick="setClub('wedge',this)">WEDGE</button>
+  </div>
 
-        <button id="launchBtn" onclick="launchShot()">Launch Shot</button>
-        <button onclick="resetGame()" style="background: #444;">Reset</button>
-    </div>
+  <div class="slider-row">
+    <span class="slider-label">Speed</span>
+    <input type="range" id="clubSpeed" min="80" max="130" value="100">
+    <span class="slider-val" id="clubSpeedVal">100</span>
+  </div>
 
-    <svg id="course" viewBox="0 0 400 160">
-        <line x1="0" y1="140" x2="400" y2="140" stroke="#444" stroke-width="2"/>
-        <rect id="greenZone" x="350" y="139" width="30" height="2" fill="#2ecc71" opacity="0.6"/>
-        <line id="flagPole" x1="375" y1="140" x2="375" y2="110" stroke="white" stroke-width="1"/>
-        <path d="M375 110 L385 115 L375 120 Z" fill="red"/>
-        
-        <path id="path" stroke="#00bfff" fill="none" stroke-width="1" opacity="0.4" stroke-dasharray="3"/>
-        <circle id="ball" cx="20" cy="140" r="4" fill="white"/>
-    </svg>
+  <div class="slider-row">
+    <span class="slider-label">Launch</span>
+    <input type="range" id="launchAngle" min="8" max="20" value="12">
+    <span class="slider-val" id="launchVal">12</span>
+  </div>
+
+  <div class="slider-row">
+    <span class="slider-label">Spin</span>
+    <input type="range" id="spinRate" min="2000" max="3500" value="2500">
+    <span class="slider-val" id="spinVal">2500</span>
+  </div>
+
+  <div class="slider-row">
+    <span class="slider-label">Wind <span class="wind-dir" id="windDir">—</span></span>
+    <input type="range" id="windSpeed" min="-30" max="30" value="0">
+    <span class="slider-val" id="windVal">0</span>
+  </div>
+</div>
+
+<div class="btn-row">
+  <button class="btn btn-launch" id="launchBtn" onclick="launchShot()">LAUNCH SHOT</button>
+  <button class="btn btn-reset" onclick="resetGame()">RESET</button>
+</div>
 
 <script>
-const START_X = 20;
-const END_X = 375; // The Flag
-const GROUND_Y = 140;
-const GREEN_RADIUS = 15; // Yards
+// --- State ---
+const DISTANCES = [410,530,165,390,420,210,560,440,180,400,520,170,385,430,200,550,445,175];
 
 const game = {
-    hole: 1,
-    distances: [410, 530, 165, 390, 420, 210, 560, 440, 180, 400, 520, 170, 385, 430, 200, 550, 445, 175],
-    remaining: 0,
-    strokesHole: 0,
-    total: 0,
-    isAnimating: false
+  hole: 1,
+  remaining: 0,
+  strokesHole: 0,
+  total: 0,
+  busy: false,
+  onGreen: false
 };
 
-function startHole() {
-    game.remaining = game.distances[game.hole - 1];
-    game.strokesHole = 0;
-    updateUI("New Hole! Aim for the green.");
-    resetBallVisual();
-    updateGreenVisual();
+let selectedClub = 'driver';
+
+// --- Club Setup ---
+function setClub(club, el) {
+  selectedClub = club;
+  document.querySelectorAll('.club-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
 }
 
-function updateGreenVisual() {
-    const pixelsPerYard = (END_X - START_X) / game.distances[game.hole-1];
-    const greenWidth = (GREEN_RADIUS * 2) * pixelsPerYard;
-    const gZone = document.getElementById("greenZone");
-    gZone.setAttribute("width", greenWidth);
-    gZone.setAttribute("x", END_X - (greenWidth/2));
+// --- Club Modifiers ---
+function getClubMods() {
+  if (selectedClub === 'driver') return { speedMult: 1.05, spinMult: 0.85, rollMult: 1.3 };
+  if (selectedClub === 'iron')   return { speedMult: 0.95, spinMult: 1.05, rollMult: 1.0 };
+  return                                 { speedMult: 0.80, spinMult: 1.20, rollMult: 0.6 };
 }
 
-function updateUI(msg, isPenalty = false) {
-    document.getElementById("holeNum").textContent = game.hole;
-    document.getElementById("holeDist").textContent = game.distances[game.hole - 1];
-    document.getElementById("remain").textContent = Math.max(0, game.remaining).toFixed(0);
-    document.getElementById("strokesHole").textContent = game.strokesHole;
-    document.getElementById("totalScore").textContent = game.total;
-    const fb = document.getElementById("feedback");
-    fb.textContent = msg;
-    fb.className = isPenalty ? "feedback penalty" : "feedback";
+// --- Physics Simulate ---
+function simulate(speedMph, launchDeg, spin, windMph) {
+  const windMs = windMph * 0.447;
+  const speedMs = speedMph * 0.44704;
+  const g = 9.81;
+  const dt = 0.05;
+
+  let vx = speedMs * Math.cos(launchDeg * Math.PI / 180);
+  let vy = speedMs * Math.sin(launchDeg * Math.PI / 180);
+  let x = 0, y = 0;
+  const pts = [{x, y}];
+
+  for (let i = 0; i < 2000; i++) {
+    const drag = 0.003;
+    vx += (-drag * vx + 0.002 * windMs) * dt;
+    vy += (-drag * vy - g) * dt;
+    x += vx * dt;
+    y += vy * dt;
+    if (y < 0) break;
+    pts.push({x, y});
+  }
+
+  const carryM = Math.max(0, x);
+  const carryYds = carryM * 1.09361;
+  return { carryYds, pts };
 }
 
-function resetBallVisual() {
-    const ball = document.getElementById("ball");
-    ball.setAttribute("cx", START_X);
-    ball.setAttribute("cy", GROUND_Y);
-    document.getElementById("path").setAttribute("opacity", "0");
+// --- Rollout ---
+function getRollout(carryYds, spin, rollMult) {
+  return carryYds * 0.12 * rollMult * (2500 / spin);
 }
 
-function applyClub(speed, spin) {
-    const club = document.getElementById("club").value;
-    if (club === "driver") return { speed: speed * 1.15, spin: spin * 0.8, roll: 1.6 };
-    if (club === "iron") return { speed: speed * 0.95, spin: spin * 1.0, roll: 0.9 };
-    return { speed: speed * 0.7, spin: spin * 1.6, roll: 0.2 };
-}
+// --- Animate ---
+function animateShot(pts, carryYds, totalYds, holeDist, onGreen, cb) {
+  const svgW = 390, svgGround = 95;
+  const scaleX = (svgW - 20) / holeDist; // px per yard across full hole
+  const landX  = 11 + carryYds * scaleX;
+  const endX   = 11 + Math.min(totalYds, holeDist) * scaleX;
 
-function simulate(speed, launch, spin, wind) {
-    const windMs = wind * 0.447;
-    const g = 9.81;
-    let vx = (speed * 0.447) * Math.cos(launch * Math.PI / 180);
-    let vy = (speed * 0.447) * Math.sin(launch * Math.PI / 180);
-    let x = 0, y = 0;
-    const pts = [];
-    for (let i = 0; i < 800; i++) {
-        pts.push({ x, y });
-        vx -= 0.006 * (vx - windMs); 
-        vy -= 0.006 * vy + g * 0.015;
-        x += vx * 0.15;
-        y += vy * 0.15;
-        if (y < 0) break;
+  // Build arc points scaled to SVG
+  const maxY = Math.max(...pts.map(p => p.y), 1);
+  const arcH  = Math.min(80, 20 + totalYds * 0.05); // visual arc height
+
+  const scaled = pts.map(p => ({
+    x: 11 + (p.x / (pts[pts.length-1].x || 1)) * (landX - 11),
+    y: svgGround - (p.y / maxY) * arcH
+  }));
+
+  // Bounces after landing
+  let cur = scaled[scaled.length - 1];
+  let bH = arcH * 0.25, bD = (endX - landX) / 3;
+  for (let b = 0; b < 3; b++) {
+    for (let i = 0; i <= 15; i++) {
+      const t = i / 15;
+      scaled.push({
+        x: cur.x + bD * t,
+        y: svgGround - bH * Math.sin(Math.PI * t)
+      });
     }
-    return { carry: x, pts };
-}
+    cur = scaled[scaled.length - 1];
+    bH *= 0.45; bD *= 0.65;
+  }
+  // Roll to final
+  const finalX = Math.min(endX, 388);
+  for (let i = 1; i <= 20; i++) {
+    scaled.push({ x: cur.x + (finalX - cur.x) * (i / 20), y: svgGround });
+  }
 
-function launchShot() {
-    if(game.isAnimating) return;
-    game.isAnimating = true;
+  // Draw dashed path
+  const shotPath = document.getElementById('shotPath');
+  const d = scaled.map((p, i) => `${i ? 'L' : 'M'}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+  shotPath.setAttribute('d', d);
+  shotPath.setAttribute('opacity', '1');
 
-    let baseSpeed = +document.getElementById("clubSpeed").value;
-    let baseSpin = +document.getElementById("spinRate").value;
-    const stats = applyClub(baseSpeed, baseSpin);
-    const sim = simulate(stats.speed, +document.getElementById("launchAngle").value, stats.spin, +document.getElementById("windSpeed").value);
-    
-    const rollout = (sim.carry * 0.18 * stats.roll);
-    const totalDist = sim.carry + rollout;
-    
-    game.strokesHole++;
-    game.total++;
+  const ball = document.getElementById('ball');
+  const duration = 1800;
+  const start = performance.now();
 
-    animateShot(sim.pts, totalDist, () => {
-        processLanding(totalDist);
-        game.isAnimating = false;
-    });
-}
-
-function processLanding(dist) {
-    const diff = game.remaining - dist;
-
-    // RULE: If distance is within 15 yards of the pin (remaining = 0)
-    if (Math.abs(diff) <= GREEN_RADIUS) {
-        updateUI("🎉 On the Green! Hole Complete.");
-        setTimeout(nextHole, 1500);
-    } 
-    // RULE: If you overshot the green area entirely
-    else if (diff < -GREEN_RADIUS) {
-        game.total += 1; // Penalty Stroke
-        updateUI("❌ OVERSHOT! +1 Penalty Stroke. Back to Tee.", true);
-        setTimeout(resetBallVisual, 1000);
-    } 
-    // Normal Shot (Short of green)
-    else {
-        game.remaining -= dist;
-        updateUI(`Short by ${game.remaining.toFixed(0)} yards. Hit again!`);
-        setTimeout(resetBallVisual, 1000);
-    }
-}
-
-function animateShot(pts, totalDist, callback) {
-    const path = document.getElementById("path");
-    const ball = document.getElementById("ball");
-    const pixelsPerYard = (END_X - START_X) / game.distances[game.hole-1];
-    
-    const scaled = pts.map(p => ({
-        x: START_X + (p.x * pixelsPerYard),
-        y: GROUND_Y - (p.y * pixelsPerYard)
-    }));
-
-    path.setAttribute("d", scaled.map((p, i) => `${i === 0 ? "M" : "L"}${p.x},${p.y}`).join(" "));
-    path.setAttribute("opacity", "0.4");
-
-    const duration = 1200;
-    const start = performance.now();
-
-    function frame(now) {
-        let t = (now - start) / duration;
-        if (t > 1) t = 1;
-        const idx = Math.floor(t * (scaled.length - 1));
-        const p = scaled[idx];
-        
-        if (t < 0.8) {
-            ball.setAttribute("cx", p.x);
-            ball.setAttribute("cy", p.y);
-        } else {
-            const rollT = (t - 0.8) / 0.2;
-            const finalX = START_X + (totalDist * pixelsPerYard);
-            const rollX = scaled[scaled.length-1].x + (finalX - scaled[scaled.length-1].x) * rollT;
-            ball.setAttribute("cx", rollX);
-            ball.setAttribute("cy", GROUND_Y);
-        }
-
-        if (t < 1) requestAnimationFrame(frame);
-        else callback();
-    }
-    requestAnimationFrame(frame);
-}
-
-function nextHole() {
-    if (game.hole >= game.distances.length) {
-        alert("🏁 Final Score: " + game.total);
-        resetGame();
+  function frame(now) {
+    let t = Math.min((now - start) / duration, 1);
+    const eased = 1 - Math.pow(1 - t, 2);
+    const idx = Math.floor(eased * (scaled.length - 1));
+    const p = scaled[idx];
+    ball.setAttribute('cx', p.x.toFixed(1));
+    ball.setAttribute('cy', p.y.toFixed(1));
+    if (t < 1) {
+      requestAnimationFrame(frame);
     } else {
+      cb();
+    }
+  }
+  requestAnimationFrame(frame);
+}
+
+// --- UI ---
+function setFeedback(msg, color) {
+  const el = document.getElementById('feedback');
+  el.textContent = msg;
+  el.style.color = color || '#aed9e0';
+}
+
+function updateScoreboard() {
+  document.getElementById('holeNum').textContent    = game.hole;
+  document.getElementById('holeDist').textContent   = DISTANCES[game.hole - 1];
+  document.getElementById('remain').textContent     = Math.max(0, game.remaining).toFixed(0);
+  document.getElementById('totalScore').textContent = game.total;
+}
+
+function setLaunchEnabled(enabled) {
+  document.getElementById('launchBtn').disabled = !enabled;
+}
+
+// --- Start Hole ---
+function startHole() {
+  game.remaining    = DISTANCES[game.hole - 1];
+  game.strokesHole  = 0;
+  game.onGreen      = false;
+  game.busy         = false;
+
+  // Reset ball & path
+  document.getElementById('ball').setAttribute('cx', 11);
+  document.getElementById('ball').setAttribute('cy', 95);
+  document.getElementById('shotPath').setAttribute('opacity', '0');
+
+  updateScoreboard();
+  setFeedback(`Hole ${game.hole} — ${DISTANCES[game.hole - 1]} yds. Hit it!`);
+  setLaunchEnabled(true);
+}
+
+// --- Finish Hole (putts added, advance) ---
+function finishHole(msg) {
+  setLaunchEnabled(false);
+  const putts = Math.random() < 0.5 ? 1 : 2;
+  game.total += putts;
+  const puttMsg = putts === 1 ? '🎯 One-putt!' : '⛳ Two-putt.';
+  setTimeout(() => {
+    setFeedback(`${msg} ${puttMsg} Hole score: ${game.strokesHole + putts}`);
+    setTimeout(() => {
+      if (game.hole >= 18) {
+        setTimeout(() => alert(`🏁 Round complete!\nTotal strokes: ${game.total}`), 200);
+      } else {
         game.hole++;
         startHole();
+      }
+    }, 2000);
+  }, 400);
+}
+
+// --- Launch ---
+function launchShot() {
+  if (game.busy) return;
+  game.busy = true;
+  setLaunchEnabled(false);
+
+  const mods    = getClubMods();
+  const speed   = +document.getElementById('clubSpeed').value   * mods.speedMult;
+  const launch  = +document.getElementById('launchAngle').value;
+  const spin    = +document.getElementById('spinRate').value    * mods.spinMult;
+  const wind    = +document.getElementById('windSpeed').value;
+
+  const { carryYds, pts } = simulate(speed, launch, spin, wind);
+  const rollout  = getRollout(carryYds, spin, mods.rollMult);
+  const totalYds = carryYds + rollout;
+
+  game.strokesHole++;
+  game.total++;
+  updateScoreboard();
+
+  const holeDist = DISTANCES[game.hole - 1];
+
+  animateShot(pts, carryYds, totalYds, holeDist, false, () => {
+    if (totalYds > game.remaining) {
+      // OVERSHOOT — penalty stroke, hole ends
+      const over = (totalYds - game.remaining).toFixed(0);
+      game.total++; // penalty
+      game.strokesHole++;
+      updateScoreboard();
+      game.remaining = 0;
+      finishHole(`Long by ${over} yds! Penalty stroke.`);
+    } else {
+      game.remaining -= totalYds;
+      updateScoreboard();
+
+      if (game.remaining <= 15) {
+        // ON THE GREEN (within ~15 yds = putting range)
+        game.remaining = 0;
+        updateScoreboard();
+        finishHole(`On the green! 🏌️`);
+      } else {
+        setFeedback(`📍 ${game.remaining.toFixed(0)} yds remaining.`);
+        game.busy = false;
+        setLaunchEnabled(true);
+      }
     }
+  });
 }
 
+// --- Reset ---
 function resetGame() {
-    game.hole = 1;
-    game.total = 0;
-    startHole();
+  game.hole  = 1;
+  game.total = 0;
+  startHole();
 }
 
-// Sliders
-const ids = ["clubSpeed", "launchAngle", "spinRate", "windSpeed"];
-const lbls = ["clubSpeedVal", "launchVal", "spinVal", "windVal"];
-ids.forEach((id, i) => {
-    document.getElementById(id).oninput = (e) => document.getElementById(lbls[i]).textContent = e.target.value;
-});
+// --- Sliders ---
+document.getElementById('clubSpeed').oninput  = e => document.getElementById('clubSpeedVal').textContent = e.target.value;
+document.getElementById('launchAngle').oninput = e => document.getElementById('launchVal').textContent    = e.target.value;
+document.getElementById('spinRate').oninput   = e => document.getElementById('spinVal').textContent      = e.target.value;
+document.getElementById('windSpeed').oninput  = e => {
+  const v = +e.target.value;
+  document.getElementById('windVal').textContent = v;
+  document.getElementById('windDir').textContent = v > 0 ? '→' : v < 0 ? '←' : '—';
+};
 
+// --- Boot ---
 startHole();
 </script>
 </body>
