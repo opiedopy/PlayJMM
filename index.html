@@ -84,6 +84,7 @@
     letter-spacing: 1px;
   }
 
+  /* Enlarged flight window: taller viewBox area */
   #course {
     width: 100%;
     border-radius: 12px;
@@ -257,7 +258,13 @@
 
 <div id="feedback">Loading hole...</div>
 
-<svg id="course" viewBox="0 0 400 120">
+<!--
+  ENLARGED WINDOW: viewBox is now 400x200 (was 400x120).
+  Ground line sits at y=185 (was 95), giving ~180px of sky for flight arc.
+  This allows accurate height representation — a 300yd drive peaks ~30m (~33yds)
+  high which now maps to proportional arc height in the view.
+-->
+<svg id="course" viewBox="0 0 400 200">
   <defs>
     <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%" stop-color="#061020"/>
@@ -267,15 +274,34 @@
       <stop offset="0%" stop-color="#2d6a4f"/>
       <stop offset="100%" stop-color="#1b4332"/>
     </linearGradient>
+    <!-- Altitude ruler ticks on left edge -->
   </defs>
-  <rect width="400" height="120" fill="url(#skyGrad)"/>
-  <rect x="0" y="95" width="400" height="25" fill="url(#grassGrad)"/>
-  <ellipse cx="360" cy="95" rx="28" ry="8" fill="#52b788"/>
-  <line x1="360" y1="60" x2="360" y2="95" stroke="#aaa" stroke-width="1.5"/>
-  <polygon points="360,60 374,66 360,72" fill="#e07a5f"/>
-  <rect x="8" y="88" width="6" height="7" rx="1" fill="#f4d35e" opacity="0.6"/>
+
+  <rect width="400" height="200" fill="url(#skyGrad)"/>
+
+  <!-- Subtle altitude guide lines -->
+  <line x1="0" y1="135" x2="400" y2="135" stroke="#1e3a5f" stroke-width="0.5" stroke-dasharray="3,6" opacity="0.5"/>
+  <line x1="0" y1="85"  x2="400" y2="85"  stroke="#1e3a5f" stroke-width="0.5" stroke-dasharray="3,6" opacity="0.5"/>
+  <line x1="0" y1="35"  x2="400" y2="35"  stroke="#1e3a5f" stroke-width="0.5" stroke-dasharray="3,6" opacity="0.3"/>
+  <!-- Labels for altitude lines -->
+  <text x="3" y="133" font-size="6" fill="#2a4a6f" font-family="monospace">15m</text>
+  <text x="3" y="83"  font-size="6" fill="#2a4a6f" font-family="monospace">30m</text>
+  <text x="3" y="33"  font-size="6" fill="#2a4a6f" font-family="monospace">50m</text>
+
+  <!-- Ground -->
+  <rect x="0" y="185" width="400" height="15" fill="url(#grassGrad)"/>
+
+  <!-- Flag / green -->
+  <ellipse cx="360" cy="185" rx="28" ry="6" fill="#52b788"/>
+  <line x1="360" y1="155" x2="360" y2="185" stroke="#aaa" stroke-width="1.5"/>
+  <polygon points="360,155 374,161 360,167" fill="#e07a5f"/>
+
+  <!-- Tee marker -->
+  <rect x="8" y="178" width="6" height="7" rx="1" fill="#f4d35e" opacity="0.6"/>
+
+  <!-- Shot path and ball -->
   <path id="shotPath" stroke="#f4d35e" fill="none" stroke-width="1.5" stroke-dasharray="4,3" opacity="0"/>
-  <circle id="ball" cx="11" cy="95" r="5" fill="white" stroke="#ccc" stroke-width="0.5"/>
+  <circle id="ball" cx="11" cy="185" r="5" fill="white" stroke="#ccc" stroke-width="0.5"/>
 </svg>
 
 <div class="controls">
@@ -285,9 +311,10 @@
     <button class="club-btn" onclick="setClub('wedge',this)">WEDGE</button>
   </div>
 
+  <!-- Speed now starts at 1 mph so short tap shots near the green are possible -->
   <div class="slider-row">
     <span class="slider-label">Speed</span>
-    <input type="range" id="clubSpeed" min="80" max="130" value="100">
+    <input type="range" id="clubSpeed" min="1" max="130" value="100">
     <span class="slider-val" id="clubSpeedVal">100</span>
   </div>
 
@@ -319,6 +346,16 @@
 <script>
 const DISTANCES = [410,530,165,390,420,210,560,440,180,400,520,170,385,430,200,550,445,175];
 
+// SVG layout constants matching the new viewBox (400x200)
+const SVG_GROUND = 185;   // y-coordinate of ground in SVG units
+const SVG_WIDTH  = 400;
+const BALL_START_X = 11;
+
+// Scale: 1 metre of real altitude = how many SVG units upward
+// Ground to top of sky ≈ 185 SVG units. We map 0–55m real height → 0–150 SVG units
+// so a 50m peak sits just below the top guide line, feeling accurate & visible.
+const METRES_TO_SVG = 150 / 55;  // ≈ 2.73 SVG units per metre
+
 const game = {
   hole: 1,
   remaining: 0,
@@ -326,7 +363,7 @@ const game = {
   total: 0,
   busy: false,
   onGreen: false,
-  ballX: 11
+  ballX: BALL_START_X
 };
 
 let selectedClub = 'driver';
@@ -343,67 +380,81 @@ function getClubMods() {
   return                                 { speedMult: 0.80, spinMult: 1.20, rollMult: 0.6 };
 }
 
+/**
+ * Physics simulation — returns carry distance in yards AND the
+ * full trajectory in metres {x, y} so we can render true arc height.
+ */
 function simulate(speedMph, launchDeg, spin, windMph) {
-  const windMs = windMph * 0.447;
+  const windMs  = windMph * 0.447;
   const speedMs = speedMph * 0.44704;
-  const g = 9.81;
-  const dt = 0.05;
+  const g       = 9.81;
+  const dt      = 0.05;
 
   let vx = speedMs * Math.cos(launchDeg * Math.PI / 180);
   let vy = speedMs * Math.sin(launchDeg * Math.PI / 180);
-  let x = 0, y = 0;
+  let x  = 0, y = 0;
   const pts = [{x, y}];
 
   for (let i = 0; i < 2000; i++) {
     const drag = 0.003;
     vx += (-drag * vx + 0.002 * windMs) * dt;
     vy += (-drag * vy - g) * dt;
-    x += vx * dt;
-    y += vy * dt;
+    x  += vx * dt;
+    y  += vy * dt;
     if (y < 0) break;
     pts.push({x, y});
   }
 
-  const carryM = Math.max(0, x);
+  const carryM   = Math.max(0, x);
   const carryYds = carryM * 1.09361;
-  return { carryYds, pts };
+  return { carryYds, pts };  // pts.y is real metres above ground
 }
 
 function getRollout(carryYds, spin, rollMult) {
   return carryYds * 0.12 * rollMult * (2500 / spin);
 }
 
+/**
+ * animateShot — maps the real physics trajectory (metres) directly to SVG coordinates.
+ * Horizontal: scaled so the carry lands at the correct x position relative to hole distance.
+ * Vertical:   1 metre real = METRES_TO_SVG SVG units upward from SVG_GROUND.
+ * This gives an accurate visual representation of peak height.
+ */
 function animateShot(pts, carryYds, totalYds, holeDist, onGreen, cb) {
-  const svgGround = 95;
-  const scaleX = (390 - 20) / holeDist;
-  const startX = game.ballX;
-  const landX  = startX + carryYds * scaleX;
-  const endX   = startX + totalYds * scaleX;
+  const scaleX   = (390 - 20) / holeDist;  // SVG pixels per yard (horizontal)
+  const startX   = game.ballX;
+  const landX    = startX + carryYds * scaleX;
+  const endX     = startX + totalYds * scaleX;
   const clampedEnd = Math.min(endX, 388);
 
-  const maxY = Math.max(...pts.map(p => p.y), 1);
-  const arcH  = Math.min(80, 20 + totalYds * 0.05);
-
+  // Map real trajectory to SVG coordinates using actual height data
+  const carryPtsX = pts[pts.length - 1].x || 1;  // real carry in metres
   const scaled = pts.map(p => ({
-    x: startX + (p.x / (pts[pts.length-1].x || 1)) * (landX - startX),
-    y: svgGround - (p.y / maxY) * arcH
+    x: startX + (p.x / carryPtsX) * (landX - startX),
+    y: SVG_GROUND - p.y * METRES_TO_SVG          // accurate altitude mapping
   }));
 
+  // Bounce sequence after landing: use a fraction of peak height, decaying
+  const peakMetres = Math.max(...pts.map(p => p.y), 0.01);
+  let bH = Math.min(peakMetres * METRES_TO_SVG * 0.18, 22);  // first bounce ≈18% of flight peak
+  let bD = (clampedEnd - landX) / 3;
   let cur = scaled[scaled.length - 1];
-  let bH = arcH * 0.25, bD = (clampedEnd - landX) / 3;
+
   for (let b = 0; b < 3; b++) {
     for (let i = 0; i <= 15; i++) {
       const t = i / 15;
       scaled.push({
         x: cur.x + bD * t,
-        y: svgGround - bH * Math.sin(Math.PI * t)
+        y: SVG_GROUND - bH * Math.sin(Math.PI * t)
       });
     }
     cur = scaled[scaled.length - 1];
-    bH *= 0.45; bD *= 0.65;
+    bH *= 0.45;
+    bD *= 0.65;
   }
+  // Roll to final rest
   for (let i = 1; i <= 20; i++) {
-    scaled.push({ x: cur.x + (clampedEnd - cur.x) * (i / 20), y: svgGround });
+    scaled.push({ x: cur.x + (clampedEnd - cur.x) * (i / 20), y: SVG_GROUND });
   }
 
   const shotPath = document.getElementById('shotPath');
@@ -411,15 +462,15 @@ function animateShot(pts, carryYds, totalYds, holeDist, onGreen, cb) {
   shotPath.setAttribute('d', d);
   shotPath.setAttribute('opacity', '1');
 
-  const ball = document.getElementById('ball');
+  const ball     = document.getElementById('ball');
   const duration = 1800;
-  const start = performance.now();
+  const start    = performance.now();
 
   function frame(now) {
-    let t = Math.min((now - start) / duration, 1);
+    let t      = Math.min((now - start) / duration, 1);
     const eased = 1 - Math.pow(1 - t, 2);
-    const idx = Math.floor(eased * (scaled.length - 1));
-    const p = scaled[idx];
+    const idx  = Math.floor(eased * (scaled.length - 1));
+    const p    = scaled[idx];
     ball.setAttribute('cx', p.x.toFixed(1));
     ball.setAttribute('cy', p.y.toFixed(1));
     if (t < 1) {
@@ -456,11 +507,11 @@ function startHole() {
   game.strokesHole = 0;
   game.onGreen     = false;
   game.busy        = false;
-  game.ballX       = 11;
+  game.ballX       = BALL_START_X;
 
   document.getElementById('lastShot').textContent = '—';
-  document.getElementById('ball').setAttribute('cx', 11);
-  document.getElementById('ball').setAttribute('cy', 95);
+  document.getElementById('ball').setAttribute('cx', BALL_START_X);
+  document.getElementById('ball').setAttribute('cy', SVG_GROUND);
   document.getElementById('shotPath').setAttribute('opacity', '0');
 
   updateScoreboard();
