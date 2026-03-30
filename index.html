@@ -49,7 +49,7 @@
   /* SCOREBOARD */
   .scoreboard {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     gap: 6px;
     margin-bottom: 12px;
   }
@@ -157,37 +157,51 @@
   input[type=range] {
     flex: 1;
     -webkit-appearance: none;
-    height: 4px;
+    appearance: none;
+    height: 6px;
     background: #1e3a5f;
-    border-radius: 2px;
+    border-radius: 3px;
     outline: none;
+    touch-action: manipulation;
   }
 
   input[type=range]::-webkit-slider-thumb {
     -webkit-appearance: none;
-    width: 14px;
-    height: 14px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
     background: var(--accent);
     cursor: pointer;
+    border: 3px solid #0a1628;
+    box-shadow: 0 0 0 2px var(--accent);
+  }
+
+  input[type=range]::-moz-range-thumb {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    border: 3px solid #0a1628;
   }
 
   /* BUTTONS */
   .btn-row {
     display: flex;
-    gap: 8px;
+    gap: 6px;
   }
 
   .btn {
     flex: 1;
-    padding: 12px;
+    padding: 9px 4px;
     border: none;
     border-radius: 10px;
     font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.1rem;
-    letter-spacing: 2px;
+    font-size: 0.95rem;
+    letter-spacing: 1.5px;
     cursor: pointer;
     transition: opacity 0.15s, transform 0.1s;
+    white-space: nowrap;
   }
 
   .btn:active { transform: scale(0.97); }
@@ -195,6 +209,12 @@
   .btn-launch {
     background: var(--accent);
     color: #0a1628;
+  }
+
+  .btn-next {
+    background: #52b788;
+    color: #0a1628;
+    display: none;
   }
 
   .btn-reset {
@@ -231,6 +251,10 @@
     <div class="stat-val" id="remain">—</div>
   </div>
   <div class="stat">
+    <div class="stat-label">Shot</div>
+    <div class="stat-val" id="lastShot">—</div>
+  </div>
+  <div class="stat">
     <div class="stat-label">Score</div>
     <div class="stat-val" id="totalScore">0</div>
   </div>
@@ -240,7 +264,6 @@
 
 <!-- COURSE VIEW -->
 <svg id="course" viewBox="0 0 400 120">
-  <!-- Sky gradient -->
   <defs>
     <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%" stop-color="#061020"/>
@@ -252,18 +275,12 @@
     </linearGradient>
   </defs>
   <rect width="400" height="120" fill="url(#skyGrad)"/>
-  <!-- Ground -->
   <rect x="0" y="95" width="400" height="25" fill="url(#grassGrad)"/>
-  <!-- Green -->
   <ellipse cx="360" cy="95" rx="28" ry="8" fill="#52b788"/>
-  <!-- Flag -->
   <line x1="360" y1="60" x2="360" y2="95" stroke="#aaa" stroke-width="1.5"/>
   <polygon points="360,60 374,66 360,72" fill="#e07a5f"/>
-  <!-- Tee marker -->
   <rect x="8" y="88" width="6" height="7" rx="1" fill="#f4d35e" opacity="0.6"/>
-  <!-- Shot path -->
   <path id="shotPath" stroke="#f4d35e" fill="none" stroke-width="1.5" stroke-dasharray="4,3" opacity="0"/>
-  <!-- Ball -->
   <circle id="ball" cx="11" cy="95" r="5" fill="white" stroke="#ccc" stroke-width="0.5"/>
 </svg>
 
@@ -282,7 +299,7 @@
   </div>
 
   <div class="slider-row">
-    <span class="slider-label">Launch</span>
+    <span class="slider-label">Angle</span>
     <input type="range" id="launchAngle" min="8" max="20" value="12">
     <span class="slider-val" id="launchVal">12</span>
   </div>
@@ -301,12 +318,12 @@
 </div>
 
 <div class="btn-row">
-  <button class="btn btn-launch" id="launchBtn" onclick="launchShot()">LAUNCH SHOT</button>
-  <button class="btn btn-reset" onclick="resetGame()">RESET</button>
+  <button class="btn btn-launch" id="launchBtn" onclick="launchShot()">LAUNCH</button>
+  <button class="btn btn-next"   id="nextBtn"   onclick="goNextHole()">NEXT HOLE ▶</button>
+  <button class="btn btn-reset"  onclick="resetGame()">RESET</button>
 </div>
 
 <script>
-// --- State ---
 const DISTANCES = [410,530,165,390,420,210,560,440,180,400,520,170,385,430,200,550,445,175];
 
 const game = {
@@ -320,21 +337,18 @@ const game = {
 
 let selectedClub = 'driver';
 
-// --- Club Setup ---
 function setClub(club, el) {
   selectedClub = club;
   document.querySelectorAll('.club-btn').forEach(b => b.classList.remove('active'));
   el.classList.add('active');
 }
 
-// --- Club Modifiers ---
 function getClubMods() {
   if (selectedClub === 'driver') return { speedMult: 1.05, spinMult: 0.85, rollMult: 1.3 };
   if (selectedClub === 'iron')   return { speedMult: 0.95, spinMult: 1.05, rollMult: 1.0 };
   return                                 { speedMult: 0.80, spinMult: 1.20, rollMult: 0.6 };
 }
 
-// --- Physics Simulate ---
 function simulate(speedMph, launchDeg, spin, windMph) {
   const windMs = windMph * 0.447;
   const speedMs = speedMph * 0.44704;
@@ -361,28 +375,24 @@ function simulate(speedMph, launchDeg, spin, windMph) {
   return { carryYds, pts };
 }
 
-// --- Rollout ---
 function getRollout(carryYds, spin, rollMult) {
   return carryYds * 0.12 * rollMult * (2500 / spin);
 }
 
-// --- Animate ---
 function animateShot(pts, carryYds, totalYds, holeDist, onGreen, cb) {
   const svgW = 390, svgGround = 95;
-  const scaleX = (svgW - 20) / holeDist; // px per yard across full hole
+  const scaleX = (svgW - 20) / holeDist;
   const landX  = 11 + carryYds * scaleX;
   const endX   = 11 + Math.min(totalYds, holeDist) * scaleX;
 
-  // Build arc points scaled to SVG
   const maxY = Math.max(...pts.map(p => p.y), 1);
-  const arcH  = Math.min(80, 20 + totalYds * 0.05); // visual arc height
+  const arcH  = Math.min(80, 20 + totalYds * 0.05);
 
   const scaled = pts.map(p => ({
     x: 11 + (p.x / (pts[pts.length-1].x || 1)) * (landX - 11),
     y: svgGround - (p.y / maxY) * arcH
   }));
 
-  // Bounces after landing
   let cur = scaled[scaled.length - 1];
   let bH = arcH * 0.25, bD = (endX - landX) / 3;
   for (let b = 0; b < 3; b++) {
@@ -396,13 +406,11 @@ function animateShot(pts, carryYds, totalYds, holeDist, onGreen, cb) {
     cur = scaled[scaled.length - 1];
     bH *= 0.45; bD *= 0.65;
   }
-  // Roll to final
   const finalX = Math.min(endX, 388);
   for (let i = 1; i <= 20; i++) {
     scaled.push({ x: cur.x + (finalX - cur.x) * (i / 20), y: svgGround });
   }
 
-  // Draw dashed path
   const shotPath = document.getElementById('shotPath');
   const d = scaled.map((p, i) => `${i ? 'L' : 'M'}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
   shotPath.setAttribute('d', d);
@@ -428,32 +436,32 @@ function animateShot(pts, carryYds, totalYds, holeDist, onGreen, cb) {
   requestAnimationFrame(frame);
 }
 
-// --- UI ---
 function setFeedback(msg, color) {
   const el = document.getElementById('feedback');
   el.textContent = msg;
   el.style.color = color || '#aed9e0';
 }
 
-function updateScoreboard() {
+function updateScoreboard(lastShotYds) {
   document.getElementById('holeNum').textContent    = game.hole;
   document.getElementById('holeDist').textContent   = DISTANCES[game.hole - 1];
   document.getElementById('remain').textContent     = Math.max(0, game.remaining).toFixed(0);
   document.getElementById('totalScore').textContent = game.total;
+  if (lastShotYds !== undefined)
+    document.getElementById('lastShot').textContent = lastShotYds.toFixed(0);
 }
 
 function setLaunchEnabled(enabled) {
   document.getElementById('launchBtn').disabled = !enabled;
 }
 
-// --- Start Hole ---
 function startHole() {
   game.remaining    = DISTANCES[game.hole - 1];
   game.strokesHole  = 0;
   game.onGreen      = false;
   game.busy         = false;
 
-  // Reset ball & path
+  document.getElementById('lastShot').textContent = '—';
   document.getElementById('ball').setAttribute('cx', 11);
   document.getElementById('ball').setAttribute('cy', 95);
   document.getElementById('shotPath').setAttribute('opacity', '0');
@@ -463,26 +471,30 @@ function startHole() {
   setLaunchEnabled(true);
 }
 
-// --- Finish Hole (putts added, advance) ---
 function finishHole(msg) {
   setLaunchEnabled(false);
   const putts = Math.random() < 0.5 ? 1 : 2;
   game.total += putts;
+  updateScoreboard();
   const puttMsg = putts === 1 ? '🎯 One-putt!' : '⛳ Two-putt.';
   setTimeout(() => {
     setFeedback(`${msg} ${puttMsg} Hole score: ${game.strokesHole + putts}`);
-    setTimeout(() => {
-      if (game.hole >= 18) {
-        setTimeout(() => alert(`🏁 Round complete!\nTotal strokes: ${game.total}`), 200);
-      } else {
-        game.hole++;
-        startHole();
-      }
-    }, 2000);
+    document.getElementById('nextBtn').style.display = 'block';
+    document.getElementById('launchBtn').style.display = 'none';
   }, 400);
 }
 
-// --- Launch ---
+function goNextHole() {
+  document.getElementById('nextBtn').style.display = 'none';
+  document.getElementById('launchBtn').style.display = 'block';
+  if (game.hole >= 18) {
+    setTimeout(() => alert(`🏁 Round complete!\nTotal strokes: ${game.total}`), 200);
+    return;
+  }
+  game.hole++;
+  startHole();
+}
+
 function launchShot() {
   if (game.busy) return;
   game.busy = true;
@@ -500,27 +512,25 @@ function launchShot() {
 
   game.strokesHole++;
   game.total++;
-  updateScoreboard();
+  updateScoreboard(totalYds);
 
   const holeDist = DISTANCES[game.hole - 1];
 
   animateShot(pts, carryYds, totalYds, holeDist, false, () => {
     if (totalYds > game.remaining) {
-      // OVERSHOOT — penalty stroke, hole ends
       const over = (totalYds - game.remaining).toFixed(0);
-      game.total++; // penalty
+      game.total++;
       game.strokesHole++;
-      updateScoreboard();
+      updateScoreboard(totalYds);
       game.remaining = 0;
       finishHole(`Long by ${over} yds! Penalty stroke.`);
     } else {
       game.remaining -= totalYds;
-      updateScoreboard();
+      updateScoreboard(totalYds);
 
       if (game.remaining <= 15) {
-        // ON THE GREEN (within ~15 yds = putting range)
         game.remaining = 0;
-        updateScoreboard();
+        updateScoreboard(totalYds);
         finishHole(`On the green! 🏌️`);
       } else {
         setFeedback(`📍 ${game.remaining.toFixed(0)} yds remaining.`);
@@ -531,14 +541,12 @@ function launchShot() {
   });
 }
 
-// --- Reset ---
 function resetGame() {
   game.hole  = 1;
   game.total = 0;
   startHole();
 }
 
-// --- Sliders ---
 document.getElementById('clubSpeed').oninput  = e => document.getElementById('clubSpeedVal').textContent = e.target.value;
 document.getElementById('launchAngle').oninput = e => document.getElementById('launchVal').textContent    = e.target.value;
 document.getElementById('spinRate').oninput   = e => document.getElementById('spinVal').textContent      = e.target.value;
@@ -548,7 +556,6 @@ document.getElementById('windSpeed').oninput  = e => {
   document.getElementById('windDir').textContent = v > 0 ? '→' : v < 0 ? '←' : '—';
 };
 
-// --- Boot ---
 startHole();
 </script>
 </body>
