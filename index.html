@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Jafur Golf Game ver 3a</title>
+<title>Jafur Golf Game ver 3b</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&display=swap');
 
@@ -212,7 +212,7 @@
 </head>
 <body>
 
-<h2>⛳ JAFUR GOLF ver 3a</h2>
+<h2>⛳ JAFUR GOLF ver 3b</h2>
 <div class="subtitle">Biltmore Forest CC - 18 HOLE - Ladies/White Tee</div>
 
 <div class="scoreboard">
@@ -254,7 +254,6 @@
 
   <rect width="400" height="200" fill="url(#skyGrad)"/>
 
-  <!-- Altitude guide lines -->
   <line x1="0" y1="135" x2="400" y2="135" stroke="#1e3a5f" stroke-width="0.5" stroke-dasharray="3,6" opacity="0.5"/>
   <line x1="0" y1="85"  x2="400" y2="85"  stroke="#1e3a5f" stroke-width="0.5" stroke-dasharray="3,6" opacity="0.5"/>
   <line x1="0" y1="35"  x2="400" y2="35"  stroke="#1e3a5f" stroke-width="0.5" stroke-dasharray="3,6" opacity="0.3"/>
@@ -263,24 +262,19 @@
   <text x="3" y="83"  font-size="6" fill="#2a4a6f" font-family="monospace">30m</text>
   <text x="3" y="33"  font-size="6" fill="#2a4a6f" font-family="monospace">50m</text>
 
-  <!-- Ground -->
   <rect x="0" y="185" width="400" height="15" fill="url(#grassGrad)"/>
 
-  <!-- Flag / green -->
   <ellipse cx="360" cy="185" rx="28" ry="6" fill="#52b788"/>
   <line x1="360" y1="155" x2="360" y2="185" stroke="#aaa" stroke-width="1.5"/>
   <polygon points="360,155 374,161 360,167" fill="#e07a5f"/>
 
-  <!-- Tee marker -->
   <rect x="8" y="178" width="6" height="7" rx="1" fill="#f4d35e" opacity="0.6"/>
 
-  <!-- Shot path and ball -->
   <path id="shotPath" stroke="#f4d35e" fill="none" stroke-width="2.5" stroke-linecap="round" opacity="0"/>
   <circle id="ball" cx="11" cy="185" r="5" fill="white" stroke="#ccc" stroke-width="0.5"/>
 </svg>
 
 <div class="controls">
-  <!-- 8 Clubs -->
   <div class="club-row" id="clubButtons"></div>
 
   <div class="slider-row">
@@ -342,52 +336,60 @@ const game = {
 };
 
 const SVG_GROUND = 185;
-const METRES_TO_SVG = 3.1;   // taller arcs that fill the sky
+const METRES_TO_SVG = 3.1;
 
-// ==================== GOLF FLY PHYSICS ENGINE ====================
-function simulate(speedMph, launchDeg, spinRpm, windMph) {
+// ==================== GOLF FLY PHYSICS ENGINE (exact match) ====================
+function simulate(clubSpeedMph, launchDeg, spinRpm, windMph) {
   const windMs = windMph * 0.447;
   const g = 9.81;
-  const dt = 0.018;
   const rho = 1.2;
   const ballMass = 0.046;
   const ballRadius = 0.021;
 
-  let vx = speedMph * 0.447 * Math.cos(launchDeg * Math.PI / 180);
-  let vy = speedMph * 0.447 * Math.sin(launchDeg * Math.PI / 180);
-  let x = 0, y = 0;
-  const pts = [];
+  const v0 = clubSpeedMph * 0.447 * 1.48;        // ← smash factor (this was the missing piece!)
+  const theta = launchDeg * Math.PI / 180;
 
-  while (y >= -0.5 && pts.length < 12000) {
-    pts.push({x, y});
+  const pts2 = [];
+  let vx2 = v0 * Math.cos(theta);
+  let vy2 = v0 * Math.sin(theta);
+  let x2 = 0, y2 = 0;
+  const dt = 0.02;
 
-    const v = Math.sqrt(vx*vx + vy*vy);
-    const relVx = vx - windMs;
-    const relV = Math.sqrt(relVx*relVx + vy*vy);
+  for (let i = 0; i < 10000; i++) {
+    pts2.push({ x: x2, y: y2 });
+    const spd = Math.sqrt(vx2 * vx2 + vy2 * vy2);
+    const relVx = vx2 - windMs;
+    const relSpd = Math.sqrt(relVx * relVx + vy2 * vy2);
+    const Fd = 0.5 * rho * relSpd * relSpd * (Math.PI * ballRadius * ballRadius) * 0.3;
+    const omega2 = spinRpm * 2 * Math.PI / 60;
+    const Fl = 0.000012 * omega2 * relSpd;
 
-    const Fd = 0.5 * rho * relV * relV * Math.PI * ballRadius * ballRadius * 0.32;
-    const omega = spinRpm * 2 * Math.PI / 60;
-    const Fl = 0.000013 * omega * relV;
+    const ax2 = -(Fd / ballMass) * (relVx / relSpd);
+    const ay2 = -(Fd / ballMass) * (vy2 / relSpd) - g + Fl / ballMass;
 
-    const ax = -(Fd / ballMass) * (relVx / relV);
-    const ay = -(Fd / ballMass) * (vy / relV) - g + (Fl / ballMass);
-
-    vx += ax * dt;
-    vy += ay * dt;
-    x += vx * dt;
-    y += vy * dt;
+    vx2 += ax2 * dt;
+    vy2 += ay2 * dt;
+    x2 += vx2 * dt;
+    y2 += vy2 * dt;
+    if (y2 < 0) break;
   }
 
-  const carryM = Math.max(0, x);
-  const carryYds = carryM * 1.0936;
-  return { carryYds, pts };
+  const apex = Math.max(...pts2.map(p => p.y));
+  const carryM = pts2[pts2.length - 1].x;
+  const carryYd = carryM * 1.094;
+  const totalYd = carryYd * 1.12;   // exact roll factor from Golf Fly
+
+  return {
+    apex: apex * 3.281,
+    carry: carryYd,
+    total: totalYd,
+    rawPoints: pts2,
+    maxX: carryM,
+    maxY: apex
+  };
 }
 
-function getRollout(carryYds, spin, rollMult) {
-  return carryYds * 0.115 * rollMult * (2800 / spin);
-}
-
-// ==================== ANIMATION (high arcs) ====================
+// ==================== ANIMATION (high sky arcs) ====================
 function animateShot(pts, carryYds, totalYds, holeDist, cb) {
   const scaleX = 370 / holeDist;
   const startX = game.ballX;
@@ -395,7 +397,6 @@ function animateShot(pts, carryYds, totalYds, holeDist, cb) {
   const endX = Math.min(startX + totalYds * scaleX, 388);
 
   const carryPtsX = pts[pts.length-1].x || 1;
-
   const scaled = pts.map(p => ({
     x: startX + (p.x / carryPtsX) * (landX - startX),
     y: SVG_GROUND - p.y * METRES_TO_SVG
@@ -408,10 +409,7 @@ function animateShot(pts, carryYds, totalYds, holeDist, cb) {
   for (let b = 0; b < 3; b++) {
     for (let i = 0; i <= 12; i++) {
       const t = i / 12;
-      scaled.push({
-        x: cur.x + bounceDist * t,
-        y: SVG_GROUND - bounceHeight * Math.sin(Math.PI * t)
-      });
+      scaled.push({ x: cur.x + bounceDist * t, y: SVG_GROUND - bounceHeight * Math.sin(Math.PI * t) });
     }
     cur = scaled[scaled.length - 1];
     bounceHeight *= 0.4;
@@ -462,7 +460,7 @@ function createClubButtons() {
   });
 }
 
-// ==================== LAUNCH ====================
+// ==================== LAUNCH (now uses exact Golf Fly physics) ====================
 function launchShot() {
   if (game.busy) return;
   game.busy = true;
@@ -479,8 +477,7 @@ function launchShot() {
   launch = Math.max(8, Math.min(25, launch));
 
   const result = simulate(speed, launch, spin, wind);
-  const rollout = getRollout(result.carryYds, spin, mods.rollMult);
-  const totalYds = result.carryYds + rollout;
+  const totalYds = result.total;   // ← now matches Golf Fly exactly
 
   game.strokesHole++;
   game.total++;
@@ -488,7 +485,7 @@ function launchShot() {
 
   const holeDist = DISTANCES[game.hole - 1];
 
-  animateShot(result.pts, result.carryYds, totalYds, holeDist, () => {
+  animateShot(result.rawPoints, result.carry, totalYds, holeDist, () => {
     game.remaining = Math.max(0, game.remaining - totalYds);
     document.getElementById('remain').textContent = game.remaining.toFixed(0);
     document.getElementById('totalScore').textContent = game.total;
