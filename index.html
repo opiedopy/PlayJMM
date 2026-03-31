@@ -6,7 +6,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Jafur Golf ver 5</title>
+<title>Jafur Golf ver 4</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@400;600&display=swap');
 
@@ -15,9 +15,7 @@
     --grass: #2d6a4f;
     --parchment: #fdf5e6;
     --brass: #d4af37;
-    --slate: #2f3e46;
     --wood: #3d2b1f;
-    --white: #ffffff;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -39,7 +37,6 @@
     color: var(--brass);
     text-align: center;
     margin-bottom: 2px;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
   }
 
   .subtitle {
@@ -49,7 +46,6 @@
     text-transform: uppercase;
     letter-spacing: 3px;
     margin-bottom: 16px;
-    opacity: 0.9;
   }
 
   .scoreboard {
@@ -65,21 +61,18 @@
     border-radius: 4px;
     padding: 10px 4px;
     text-align: center;
-    box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
   }
 
   .stat-label {
     font-size: 0.5rem;
     color: var(--brass);
     text-transform: uppercase;
-    letter-spacing: 1px;
     margin-bottom: 4px;
   }
 
   .stat-val {
     font-size: 1.1rem;
     font-weight: 600;
-    color: var(--parchment);
   }
 
   #feedback {
@@ -87,10 +80,7 @@
     font-size: 0.9rem;
     min-height: 50px;
     margin-bottom: 12px;
-    color: var(--parchment);
     font-style: italic;
-    border-top: 1px solid rgba(212, 175, 55, 0.2);
-    padding-top: 8px;
   }
 
   #course {
@@ -98,9 +88,7 @@
     border-radius: 8px;
     border: 2px solid var(--brass);
     margin-bottom: 14px;
-    display: block;
     background: #0a1f16;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.6);
   }
 
   .controls {
@@ -110,27 +98,24 @@
     border-radius: 8px;
     padding: 16px;
     margin-bottom: 14px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.4);
   }
 
   .club-row {
     display: flex;
     gap: 6px;
     flex-wrap: wrap;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
   }
 
   .club-btn {
-    padding: 8px 4px;
+    padding: 6px 4px;
     background: #1b1b1b;
     border: 1px solid var(--brass);
     border-radius: 4px;
     color: var(--brass);
-    font-family: 'Montserrat', sans-serif;
     font-size: 0.6rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s;
     flex: 1 0 15%;
     min-width: 60px;
     text-align: center;
@@ -139,7 +124,6 @@
   .club-btn.active {
     background: var(--brass);
     color: var(--wood);
-    box-shadow: 0 0 12px var(--brass);
   }
 
   .slider-row {
@@ -152,8 +136,7 @@
   .slider-label {
     font-size: 0.6rem;
     font-weight: 600;
-    color: var(--parchment);
-    width: 70px;
+    width: 80px;
     text-transform: uppercase;
   }
 
@@ -169,7 +152,6 @@
     -webkit-appearance: none;
     height: 4px;
     background: rgba(255,255,255,0.1);
-    border-radius: 2px;
   }
 
   input[type=range]::-webkit-slider-thumb {
@@ -178,7 +160,6 @@
     height: 22px;
     background: var(--brass);
     border-radius: 50%;
-    cursor: pointer;
     border: 2px solid var(--wood);
   }
 
@@ -195,42 +176,24 @@
     font-family: 'Playfair Display', serif;
     font-size: 1.1rem;
     cursor: pointer;
-    transition: all 0.2s;
     text-transform: uppercase;
-    letter-spacing: 1px;
   }
 
-  .btn-launch {
-    background: var(--brass);
-    color: var(--wood);
-    font-weight: 700;
-  }
-
-  .btn-next {
-    background: var(--grass);
-    color: var(--parchment);
-    display: none;
-  }
-
-  .btn-reset {
-    background: #4a1e1e;
-    color: var(--parchment);
-    font-size: 0.8rem;
-  }
-
-  .btn:active { transform: translateY(2px); filter: brightness(1.2); }
+  .btn-launch { background: var(--brass); color: var(--wood); font-weight: 700; }
+  .btn-next { background: var(--grass); color: var(--parchment); display: none; }
+  .btn-reset { background: #4a1e1e; color: var(--parchment); font-size: 0.8rem; }
 </style>
 </head>
 <body>
 
-<h2>⛳ JAFUR GOLF </h2>
-<div class="subtitle">Biltmore Forest CC • Ladies White Tee</div>
+<h2>⛳ JAFUR GOLF ver 6</h2>
+<div class="subtitle">Biltmore Forest CC • Heritage Edition</div>
 
 <div class="scoreboard">
   <div class="stat"><div class="stat-label">Hole</div><div class="stat-val" id="holeNum">1</div></div>
   <div class="stat"><div class="stat-label">Par Dist</div><div class="stat-val" id="holeDist">—</div></div>
   <div class="stat"><div class="stat-label">Remain</div><div class="stat-val" id="remain">—</div></div>
-  <div class="stat"><div class="stat-label">Last</div><div class="stat-val" id="lastShot">—</div></div>
+  <div class="stat"><div class="stat-label">Shot</div><div class="stat-val" id="lastShot">—</div></div>
   <div class="stat"><div class="stat-label">Total</div><div class="stat-val" id="totalScore">0</div></div>
 </div>
 
@@ -238,8 +201,6 @@
 
 <svg id="course" viewBox="0 0 400 200" xmlns="http://www.w3.org/2000/svg">
   <rect width="400" height="200" fill="#0a1f16"/>
-  <line x1="0" y1="135" x2="400" y2="135" stroke="var(--brass)" stroke-width="0.3" stroke-dasharray="5,5" opacity="0.3"/>
-  <line x1="0" y1="85"  x2="400" y2="85"  stroke="var(--brass)" stroke-width="0.3" stroke-dasharray="5,5" opacity="0.3"/>
   <rect x="0" y="185" width="400" height="15" fill="#1b4332"/>
   <ellipse cx="360" cy="185" rx="30" ry="8" fill="#2d6a4f" stroke="var(--brass)" stroke-width="0.5"/>
   <line x1="360" y1="155" x2="360" y2="185" stroke="#fff" stroke-width="1"/>
@@ -251,19 +212,19 @@
 <div class="controls">
   <div class="club-row" id="clubButtons"></div>
   <div class="slider-row">
-    <span class="slider-label">Club Speed</span>
+    <span class="slider-label">Speed</span>
     <input type="range" id="clubSpeed" min="1" max="130" value="100">
     <span class="slider-val" id="clubSpeedVal">100</span>
   </div>
   <div class="slider-row">
-    <span class="slider-label">Launch Angle</span>
+    <span class="slider-label">Angle</span>
     <input type="range" id="launchAngle" min="8" max="20" value="12">
     <span class="slider-val" id="launchVal">12</span>
   </div>
   <div class="slider-row">
-    <span class="slider-label">Backspin</span>
-    <input type="range" id="spinRate" min="2000" max="3500" value="2500" style="display:none;">
-    <span class="slider-val" id="spinVal" style="display:none;">2500</span>
+    <span class="slider-label">Spin</span>
+    <input type="range" id="spinRate" min="2000" max="3500" value="2500">
+    <span class="slider-val" id="spinVal">2500</span>
   </div>
   <div class="slider-row">
     <span class="slider-label">Wind <span id="windDir">—</span></span>
@@ -279,7 +240,6 @@
 </div>
 
 <script>
-// ==================== 12 CLUBS ====================
 const clubs = [
   {name: "DRIVER", id: "dr", speedMult: 1.00, launchBias: -1, spinMult: 0.78},
   {name: "3-WOOD", id: "3w", speedMult: 0.93, launchBias: 0, spinMult: 0.88},
@@ -299,43 +259,39 @@ let selectedClub = clubs[0];
 const DISTANCES = [314,397,129,425,385,366,409,390,149,375,354,313,443,271,193,395,421,365];
 const game = { hole: 1, remaining: 0, strokesHole: 0, total: 0, busy: false, ballX: 11 };
 
-// ==================== CORRECTED PHYSICS ENGINE ====================
 function simulate(clubSpeedMph, launchDeg, spinRpm, windMph) {
   const windMs = windMph * 0.447;
   const g = 9.81;
-  const rho = 1.225; 
-  const ballMass = 0.0459;
-  const ballRadius = 0.0213;
-  const area = Math.PI * ballRadius * ballRadius;
-  
-  let v0 = clubSpeedMph * 0.447 * 1.48; 
+  const rho = 1.2;
+  const ballMass = 0.046;
+  const ballRadius = 0.021;
+  const v0 = clubSpeedMph * 0.447 * 1.48;        
   const theta = launchDeg * Math.PI / 180;
 
-  const pts = [];
-  let vx = v0 * Math.cos(theta);
-  let vy = v0 * Math.sin(theta);
-  let x = 0, y = 0;
-  const dt = 0.01; 
+  const pts2 = [];
+  let vx2 = v0 * Math.cos(theta);
+  let vy2 = v0 * Math.sin(theta);
+  let x2 = 0, y2 = 0;
+  const dt = 0.02;
 
-  for (let i = 0; i < 2000; i++) {
-    pts.push({ x: x, y: y });
-    const relVx = vx - windMs;
-    const speed = Math.sqrt(relVx * relVx + vy * vy);
-    const Cd = 0.24; 
-    const Fd = 0.5 * rho * speed * speed * area * Cd;
-    const Cl = 0.16; 
-    const Fl = 0.5 * rho * speed * speed * area * Cl;
-    const ax = -(Fd / ballMass) * (relVx / speed) + (Fl / ballMass) * (-vy / speed);
-    const ay = -(Fd / ballMass) * (vy / speed) + (Fl / ballMass) * (relVx / speed) - g;
-    vx += ax * dt;
-    vy += ay * dt;
-    x += vx * dt;
-    y += vy * dt;
-    if (y < 0 && i > 5) break;
+  for (let i = 0; i < 1000; i++) {
+    pts2.push({ x: x2, y: y2 });
+    const spd = Math.sqrt(vx2 * vx2 + vy2 * vy2);
+    const relVx = vx2 - windMs;
+    const relSpd = Math.sqrt(relVx * relVx + vy2 * vy2);
+    const Fd = 0.5 * rho * relSpd * relSpd * (Math.PI * ballRadius * ballRadius) * 0.3;
+    const omega2 = spinRpm * 2 * Math.PI / 60;
+    const Fl = 0.000012 * omega2 * relSpd;
+    const ax2 = -(Fd / ballMass) * (relVx / relSpd);
+    const ay2 = -(Fd / ballMass) * (vy2 / relSpd) - g + (Fl / ballMass);
+    vx2 += ax2 * dt;
+    vy2 += ay2 * dt;
+    x2 += vx2 * dt;
+    y2 += vy2 * dt;
+    if (y2 < 0) break;
   }
-  const carryYds = x * 1.09361;
-  const totalYds = carryYds * 1.11; 
-  return { carry: carryYds, total: totalYds, rawPoints: pts };
+  const carryYd = (pts2[pts2.length - 1].x) * 1.094;
+  return { carry: carryYd, total: carryYd * 1.12, rawPoints: pts2 };
 }
 
 function animateShot(pts, carryYds, totalYds, holeDist, cb) {
@@ -343,24 +299,21 @@ function animateShot(pts, carryYds, totalYds, holeDist, cb) {
   const startX = game.ballX;
   const landX = startX + carryYds * scaleX;
   const endX = Math.min(startX + totalYds * scaleX, 388);
-  const carryPtsX = pts[pts.length - 1].x || 1;
+  const carryPtsX = pts[pts.length-1].x || 1;
   const scaled = pts.map(p => ({
     x: startX + (p.x / carryPtsX) * (landX - startX),
-    y: 185 - p.y * 2.8 
+    y: 185 - p.y * 3.1
   }));
-  const lastPt = scaled[scaled.length - 1];
-  for (let i = 1; i <= 10; i++) {
-    scaled.push({ x: lastPt.x + (endX - lastPt.x) * (i / 10), y: 185 });
-  }
+  const last = scaled[scaled.length-1];
+  for(let i=1; i<=10; i++) scaled.push({x: last.x + (endX-last.x)*(i/10), y:185});
+  
   const path = document.getElementById('shotPath');
-  path.setAttribute('d', scaled.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' '));
+  path.setAttribute('d', scaled.map((p,i) => `${i==0?'M':'L'}${p.x},${p.y}`).join(' '));
   path.setAttribute('opacity', '1');
   let i = 0;
   const ball = document.getElementById('ball');
   function frame() {
-    if (i >= scaled.length) {
-      game.ballX = endX; ball.setAttribute('cx', endX); ball.setAttribute('cy', 185); cb(); return;
-    }
+    if (i >= scaled.length) { game.ballX = endX; ball.setAttribute('cx', endX); ball.setAttribute('cy', 185); cb(); return; }
     ball.setAttribute('cx', scaled[i].x); ball.setAttribute('cy', scaled[i].y);
     i++; requestAnimationFrame(frame);
   }
@@ -369,7 +322,6 @@ function animateShot(pts, carryYds, totalYds, holeDist, cb) {
 
 function createClubButtons() {
   const container = document.getElementById('clubButtons');
-  container.innerHTML = '';
   clubs.forEach(c => {
     const b = document.createElement('button');
     b.className = 'club-btn' + (c.id === selectedClub.id ? ' active' : '');
@@ -383,21 +335,21 @@ function createClubButtons() {
 }
 
 function launchShot() {
-  if (game.busy) return;
-  game.busy = true;
+  if (game.busy) return; game.busy = true;
   document.getElementById('launchBtn').disabled = true;
   const spd = parseFloat(document.getElementById('clubSpeed').value) * selectedClub.speedMult;
   const ang = Math.max(8, parseFloat(document.getElementById('launchAngle').value) + selectedClub.launchBias);
+  const spn = parseFloat(document.getElementById('spinRate').value) * selectedClub.spinMult;
   const wind = parseFloat(document.getElementById('windSpeed').value);
-  const res = simulate(spd, ang, 2500, wind);
+  const res = simulate(spd, ang, spn, wind);
   game.strokesHole++;
   document.getElementById('lastShot').textContent = res.total.toFixed(0);
-  animateShot(res.rawPoints, res.carry, res.total, DISTANCES[game.hole - 1], () => {
+  animateShot(res.rawPoints, res.carry, res.total, DISTANCES[game.hole-1], () => {
     game.remaining -= res.total;
     document.getElementById('remain').textContent = Math.max(0, game.remaining).toFixed(0);
-    if (game.remaining < -12) {
+    if(game.remaining < -12) {
       finishHole(`Overshot by ${Math.abs(game.remaining).toFixed(0)} yards. Chipped back and`);
-    } else if (Math.abs(game.remaining) <= 12) {
+    } else if(Math.abs(game.remaining) <= 12) {
       game.remaining = 0; document.getElementById('remain').textContent = '0';
       finishHole("Splendid! On the green.");
     } else {
@@ -412,7 +364,7 @@ function finishHole(msg) {
   game.total += (game.strokesHole + putts);
   document.getElementById('totalScore').textContent = game.total;
   setTimeout(() => {
-    document.getElementById('feedback').innerHTML = `${msg} ${putts === 1 ? '🎯 1 putt' : '⛳ 2 putt'}.<br>Score: ${game.strokesHole + putts} | Total: ${game.total}`;
+    document.getElementById('feedback').innerHTML = `${msg} ${putts === 1 ? '🎯 1 putt' : '⛳ 2 putt'}.<br>Hole Score: ${game.strokesHole + putts} | Total Score: ${game.total}`;
     document.getElementById('nextBtn').style.display = 'block';
     document.getElementById('launchBtn').style.display = 'none';
   }, 600);
@@ -426,8 +378,7 @@ function goNextHole() {
 }
 
 function startHole() {
-  game.remaining = DISTANCES[game.hole - 1];
-  game.strokesHole = 0; game.ballX = 11; game.busy = false;
+  game.remaining = DISTANCES[game.hole-1]; game.strokesHole = 0; game.ballX = 11; game.busy = false;
   document.getElementById('holeNum').textContent = game.hole;
   document.getElementById('holeDist').textContent = game.remaining;
   document.getElementById('remain').textContent = game.remaining;
@@ -443,6 +394,7 @@ function resetGame() { game.hole = 1; game.total = 0; startHole(); document.getE
 
 document.getElementById('clubSpeed').oninput = e => document.getElementById('clubSpeedVal').textContent = e.target.value;
 document.getElementById('launchAngle').oninput = e => document.getElementById('launchVal').textContent = e.target.value;
+document.getElementById('spinRate').oninput = e => document.getElementById('spinVal').textContent = e.target.value;
 document.getElementById('windSpeed').oninput = e => {
   const v = +e.target.value; document.getElementById('windVal').textContent = v;
   document.getElementById('windDir').textContent = v > 0 ? '→' : v < 0 ? '←' : '—';
@@ -452,6 +404,7 @@ startHole();
 </script>
 </body>
 </html>
+
 
 
 
