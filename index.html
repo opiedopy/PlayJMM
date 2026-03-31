@@ -6,7 +6,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Jafur Golf ver 4</title>
+<title>Jafur Golf ver 7</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@400;600&display=swap');
 
@@ -22,13 +22,18 @@
 
   body {
     font-family: 'Montserrat', sans-serif;
-    background: var(--forest);
-    background-image: linear-gradient(135deg, #122c21 0%, #1b4332 100%);
+    /* Use the image as the background, repeating and covered */
+    background-image: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.6)), url('image_0.png'); /* Overlay for lower brightness */
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed; /* Keep it stationary if there's scrolling */
+    background-position: center center;
     color: var(--parchment);
     min-height: 100vh;
     padding: 16px;
     max-width: 520px;
     margin: 0 auto;
+    position: relative; /* Contain the overlay */
   }
 
   h2 {
@@ -53,6 +58,7 @@
     grid-template-columns: repeat(5, 1fr);
     gap: 8px;
     margin-bottom: 14px;
+    position: relative; z-index: 10;
   }
 
   .stat {
@@ -81,6 +87,7 @@
     min-height: 50px;
     margin-bottom: 12px;
     font-style: italic;
+    position: relative; z-index: 10;
   }
 
   #course {
@@ -89,6 +96,7 @@
     border: 2px solid var(--brass);
     margin-bottom: 14px;
     background: #0a1f16;
+    position: relative; z-index: 10;
   }
 
   .controls {
@@ -98,6 +106,7 @@
     border-radius: 8px;
     padding: 16px;
     margin-bottom: 14px;
+    position: relative; z-index: 10;
   }
 
   .club-row {
@@ -166,6 +175,7 @@
   .btn-row {
     display: flex;
     gap: 8px;
+    position: relative; z-index: 10;
   }
 
   .btn {
@@ -186,57 +196,59 @@
 </head>
 <body>
 
-<h2>⛳ JAFUR GOLF ver 6</h2>
-<div class="subtitle">Biltmore Forest CC • Heritage Edition</div>
+<div style="position: relative; z-index: 10;">
+  <h2>⛳ JAFUR GOLF ver 7</h2>
+  <div class="subtitle">Biltmore Forest CC • Ladies White Tee</div>
 
-<div class="scoreboard">
-  <div class="stat"><div class="stat-label">Hole</div><div class="stat-val" id="holeNum">1</div></div>
-  <div class="stat"><div class="stat-label">Par Dist</div><div class="stat-val" id="holeDist">—</div></div>
-  <div class="stat"><div class="stat-label">Remain</div><div class="stat-val" id="remain">—</div></div>
-  <div class="stat"><div class="stat-label">Shot</div><div class="stat-val" id="lastShot">—</div></div>
-  <div class="stat"><div class="stat-label">Total</div><div class="stat-val" id="totalScore">0</div></div>
-</div>
-
-<div id="feedback">Welcome to the first tee.</div>
-
-<svg id="course" viewBox="0 0 400 200" xmlns="http://www.w3.org/2000/svg">
-  <rect width="400" height="200" fill="#0a1f16"/>
-  <rect x="0" y="185" width="400" height="15" fill="#1b4332"/>
-  <ellipse cx="360" cy="185" rx="30" ry="8" fill="#2d6a4f" stroke="var(--brass)" stroke-width="0.5"/>
-  <line x1="360" y1="155" x2="360" y2="185" stroke="#fff" stroke-width="1"/>
-  <polygon points="360,155 374,161 360,167" fill="#c0392b"/>
-  <path id="shotPath" stroke="var(--parchment)" fill="none" stroke-width="2" stroke-dasharray="2,2" opacity="0"/>
-  <circle id="ball" cx="11" cy="185" r="4" fill="white"/>
-</svg>
-
-<div class="controls">
-  <div class="club-row" id="clubButtons"></div>
-  <div class="slider-row">
-    <span class="slider-label">Speed</span>
-    <input type="range" id="clubSpeed" min="1" max="130" value="100">
-    <span class="slider-val" id="clubSpeedVal">100</span>
+  <div class="scoreboard">
+    <div class="statStatstatstatstat-statstatstat stat"><div class="stat-label">Hole</div><div class="stat-val" id="holeNum">1</div></div>
+    <div class="statStatstatstatstat-statstatstat stat"><div class="stat-label">Par Dist</div><div class="stat-val" id="holeDist">—</div></div>
+    <div class="statStatstatstatstat-statstatstat stat"><div class="stat-label">Remain</div><div class="stat-val" id="remain">—</div></div>
+    <div class="statStatstatstatstat-statstatstat stat"><div class="stat-label">Shot</div><div class="stat-val" id="lastShot">—</div></div>
+    <div class="statStatstatstatstat-statstatstat stat"><div class="stat-label">Total</div><div class="stat-val" id="totalScore">0</div></div>
   </div>
-  <div class="slider-row">
-    <span class="slider-label">Angle</span>
-    <input type="range" id="launchAngle" min="8" max="20" value="12">
-    <span class="slider-val" id="launchVal">12</span>
-  </div>
-  <div class="slider-row">
-    <span class="slider-label">Spin</span>
-    <input type="range" id="spinRate" min="2000" max="3500" value="2500">
-    <span class="slider-val" id="spinVal">2500</span>
-  </div>
-  <div class="slider-row">
-    <span class="slider-label">Wind <span id="windDir">—</span></span>
-    <input type="range" id="windSpeed" min="-30" max="30" value="0">
-    <span class="slider-val" id="windVal">0</span>
-  </div>
-</div>
 
-<div class="btn-row">
-  <button class="btn btn-launch" id="launchBtn" onclick="launchShot()">STRIKE BALL</button>
-  <button class="btn btn-next" id="nextBtn" onclick="goNextHole()">PROCEED ▶</button>
-  <button class="btn btn-reset" onclick="resetGame()">RESET ROUND</button>
+  <div id="feedback">Welcome to the first tee.</div>
+
+  <svg id="course" viewBox="0 0 400 200" xmlns="http://www.w3.org/2000/svg">
+    <rect width="400" height="200" fill="#0a1f16"/>
+    <rect x="0" y="185" width="400" height="15" fill="#1b4332"/>
+    <ellipse cx="360" cy="185" rx="30" ry="8" fill="#2d6a4f" stroke="var(--brass)" stroke-width="0.5"/>
+    <line x1="360" y1="155" x2="360" y2="185" stroke="#fff" stroke-width="1"/>
+    <polygon points="360,155 374,161 360,167" fill="#c0392b"/>
+    <path id="shotPath" stroke="var(--parchment)" fill="none" stroke-width="2" stroke-dasharray="2,2" opacity="0"/>
+    <circle id="ball" cx="11" cy="185" r="4" fill="white"/>
+  </svg>
+
+  <div class="controls">
+    <div class="club-row" id="clubButtons"></div>
+    <div class="slider-row">
+      <span class="slider-label">Speed</span>
+      <input type="range" id="clubSpeed" min="1" max="130" value="100">
+      <span class="slider-val" id="clubSpeedVal">100</span>
+    </div>
+    <div class="slider-row">
+      <span class="slider-label">Angle</span>
+      <input type="range" id="launchAngle" min="8" max="20" value="12">
+      <span class="slider-val" id="launchVal">12</span>
+    </div>
+    <div class="slider-row">
+      <span class="slider-label">Spin</span>
+      <input type="range" id="spinRate" min="2000" max="3500" value="2500">
+      <span class="slider-val" id="spinVal">2500</span>
+    </div>
+    <div class="slider-row">
+      <span class="slider-label">Wind <span id="windDir">—</span></span>
+      <input type="range" id="windSpeed" min="-30" max="30" value="0">
+      <span class="slider-val" id="windVal">0</span>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-launch" id="launchBtn" onclick="launchShot()">STRIKE BALL</button>
+    <button class="btn btn-next" id="nextBtn" onclick="goNextHole()">PROCEED ▶</button>
+    <button class="btn btn-reset" onclick="resetGame()">RESET ROUND</button>
+  </div>
 </div>
 
 <script>
@@ -348,6 +360,7 @@ function launchShot() {
     game.remaining -= res.total;
     document.getElementById('remain').textContent = Math.max(0, game.remaining).toFixed(0);
     if(game.remaining < -12) {
+      game.strokesHole++; // ADD STROKE FOR CHIP BACK
       finishHole(`Overshot by ${Math.abs(game.remaining).toFixed(0)} yards. Chipped back and`);
     } else if(Math.abs(game.remaining) <= 12) {
       game.remaining = 0; document.getElementById('remain').textContent = '0';
@@ -404,6 +417,7 @@ startHole();
 </script>
 </body>
 </html>
+
 
 
 
