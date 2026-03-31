@@ -81,7 +81,7 @@
   #feedback {
     text-align: center;
     font-size: 0.85rem;
-    min-height: 24px;
+    min-height: 48px;
     margin-bottom: 10px;
     color: #aed9e0;
     letter-spacing: 1px;
@@ -341,7 +341,7 @@ const game = {
 const SVG_GROUND = 185;
 const METRES_TO_SVG = 3.1;
 
-// ==================== GOLF FLY PHYSICS ENGINE (exact match) ====================
+// ==================== GOLF FLY PHYSICS ENGINE ====================
 function simulate(clubSpeedMph, launchDeg, spinRpm, windMph) {
   const windMs = windMph * 0.447;
   const g = 9.81;
@@ -349,7 +349,7 @@ function simulate(clubSpeedMph, launchDeg, spinRpm, windMph) {
   const ballMass = 0.046;
   const ballRadius = 0.021;
 
-  const v0 = clubSpeedMph * 0.447 * 1.48;        // ← smash factor (this was the missing piece!)
+  const v0 = clubSpeedMph * 0.447 * 1.48;        
   const theta = launchDeg * Math.PI / 180;
 
   const pts2 = [];
@@ -380,7 +380,7 @@ function simulate(clubSpeedMph, launchDeg, spinRpm, windMph) {
   const apex = Math.max(...pts2.map(p => p.y));
   const carryM = pts2[pts2.length - 1].x;
   const carryYd = carryM * 1.094;
-  const totalYd = carryYd * 1.12;   // exact roll factor from Golf Fly
+  const totalYd = carryYd * 1.12;   
 
   return {
     apex: apex * 3.281,
@@ -392,7 +392,7 @@ function simulate(clubSpeedMph, launchDeg, spinRpm, windMph) {
   };
 }
 
-// ==================== ANIMATION (high sky arcs) ====================
+// ==================== ANIMATION ====================
 function animateShot(pts, carryYds, totalYds, holeDist, cb) {
   const scaleX = 370 / holeDist;
   const startX = game.ballX;
@@ -463,7 +463,7 @@ function createClubButtons() {
   });
 }
 
-// ==================== LAUNCH (now uses exact Golf Fly physics) ====================
+// ==================== LAUNCH ====================
 function launchShot() {
   if (game.busy) return;
   game.busy = true;
@@ -480,20 +480,26 @@ function launchShot() {
   launch = Math.max(8, Math.min(25, launch));
 
   const result = simulate(speed, launch, spin, wind);
-  const totalYds = result.total;   // ← now matches Golf Fly exactly
+  const totalYds = result.total;   
 
   game.strokesHole++;
-  game.total++;
   document.getElementById('lastShot').textContent = totalYds.toFixed(0);
 
   const holeDist = DISTANCES[game.hole - 1];
 
   animateShot(result.rawPoints, result.carry, totalYds, holeDist, () => {
-    game.remaining = Math.max(0, game.remaining - totalYds);
-    document.getElementById('remain').textContent = game.remaining.toFixed(0);
-    document.getElementById('totalScore').textContent = game.total;
+    const prevRemaining = game.remaining;
+    game.remaining -= totalYds;
+    
+    document.getElementById('remain').textContent = Math.max(0, game.remaining).toFixed(0);
 
-    if (game.remaining <= 12) {
+    // Check for Overshoot (more than 12 yards past the hole)
+    if (game.remaining < -12) {
+      const overshotBy = Math.abs(game.remaining);
+      finishHole(`Overshot the hole by ${overshotBy.toFixed(0)} yards. Chipped back and`);
+    } 
+    // Check for On Green (within 12 yards of hole)
+    else if (Math.abs(game.remaining) <= 12) {
       game.remaining = 0;
       document.getElementById('remain').textContent = '0';
       finishHole("On the green! 🏌️");
@@ -507,11 +513,12 @@ function launchShot() {
 
 function finishHole(msg) {
   const putts = Math.random() < 0.6 ? 1 : 2;
-  game.total += putts;
+  game.total += (game.strokesHole + putts);
+  
   document.getElementById('totalScore').textContent = game.total;
 
   setTimeout(() => {
-    document.getElementById('feedback').innerHTML = `${msg}<br>${putts === 1 ? '🎯 One-putt!' : '⛳ Two-putt.'}`;
+    document.getElementById('feedback').innerHTML = `${msg} ${putts === 1 ? '🎯 1 putt' : '⛳ 2 putt'}.<br>Score for hole: ${game.strokesHole + putts} | Total: ${game.total}`;
     document.getElementById('nextBtn').style.display = 'block';
     document.getElementById('launchBtn').style.display = 'none';
   }, 600);
@@ -552,6 +559,7 @@ function resetGame() {
   game.hole = 1;
   game.total = 0;
   startHole();
+  document.getElementById('totalScore').textContent = "0";
 }
 
 // Initialize
@@ -569,3 +577,4 @@ startHole();
 </script>
 </body>
 </html>
+
