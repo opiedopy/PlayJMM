@@ -6,7 +6,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Jafur Golf ver 7</title>
+<title>Jafur Golf ver 8 - Club Tester</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@400;600&display=swap');
 
@@ -22,82 +22,30 @@
 
   body {
     font-family: 'Montserrat', sans-serif;
-    /* Use the image as the background, repeating and covered */
-    background-image: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.6)), url('bcc.png'); /* Overlay for lower brightness */
+    background-image: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.6)), url('bcc.png');
     background-size: cover;
     background-repeat: no-repeat;
-    background-attachment: fixed; /* Keep it stationary if there's scrolling */
+    background-attachment: fixed;
     background-position: center center;
     color: var(--parchment);
     min-height: 100vh;
     padding: 16px;
     max-width: 520px;
     margin: 0 auto;
-    position: relative; /* Contain the overlay */
+    position: relative;
   }
 
-  h2 {
-    font-family: 'Playfair Display', serif;
-    font-size: 2.2rem;
-    color: var(--brass);
-    text-align: center;
-    margin-bottom: 2px;
-  }
+  h2 { font-family: 'Playfair Display', serif; font-size: 2.2rem; color: var(--brass); text-align: center; margin-bottom: 2px; }
+  .subtitle { text-align: center; font-size: 0.7rem; color: var(--brass); text-transform: uppercase; letter-spacing: 3px; margin-bottom: 16px; }
 
-  .subtitle {
-    text-align: center;
-    font-size: 0.7rem;
-    color: var(--brass);
-    text-transform: uppercase;
-    letter-spacing: 3px;
-    margin-bottom: 16px;
-  }
+  .scoreboard { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 14px; position: relative; z-index: 10; }
+  .stat { background: rgba(0, 0, 0, 0.3); border: 1px solid var(--brass); border-radius: 4px; padding: 10px 4px; text-align: center; }
+  .stat-label { font-size: 0.5rem; color: var(--brass); text-transform: uppercase; margin-bottom: 4px; }
+  .stat-val { font-size: 1.1rem; font-weight: 600; }
 
-  .scoreboard {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 8px;
-    margin-bottom: 14px;
-    position: relative; z-index: 10;
-  }
+  #feedback { text-align: center; font-size: 0.9rem; min-height: 50px; margin-bottom: 12px; font-style: italic; position: relative; z-index: 10; }
 
-  .stat {
-    background: rgba(0, 0, 0, 0.3);
-    border: 1px solid var(--brass);
-    border-radius: 4px;
-    padding: 10px 4px;
-    text-align: center;
-  }
-
-  .stat-label {
-    font-size: 0.5rem;
-    color: var(--brass);
-    text-transform: uppercase;
-    margin-bottom: 4px;
-  }
-
-  .stat-val {
-    font-size: 1.1rem;
-    font-weight: 600;
-  }
-
-  #feedback {
-    text-align: center;
-    font-size: 0.9rem;
-    min-height: 50px;
-    margin-bottom: 12px;
-    font-style: italic;
-    position: relative; z-index: 10;
-  }
-
-  #course {
-    width: 100%;
-    border-radius: 8px;
-    border: 2px solid var(--brass);
-    margin-bottom: 14px;
-    background: #0a1f16;
-    position: relative; z-index: 10;
-  }
+  #course { width: 100%; border-radius: 8px; border: 2px solid var(--brass); margin-bottom: 14px; background: #0a1f16; position: relative; z-index: 10; }
 
   .controls {
     background: var(--wood);
@@ -109,86 +57,32 @@
     position: relative; z-index: 10;
   }
 
-  .club-row {
+  .club-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+  .club-btn { padding: 6px 4px; background: #1b1b1b; border: 1px solid var(--brass); border-radius: 4px; color: var(--brass); font-size: 0.6rem; font-weight: 600; cursor: pointer; flex: 1 0 15%; min-width: 60px; text-align: center; }
+  .club-btn.active { background: var(--brass); color: var(--wood); }
+
+  /* Test Mode Toggle Styling */
+  .test-mode-row {
     display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-    margin-bottom: 12px;
-  }
-
-  .club-btn {
-    padding: 6px 4px;
-    background: #1b1b1b;
-    border: 1px solid var(--brass);
-    border-radius: 4px;
-    color: var(--brass);
-    font-size: 0.6rem;
-    font-weight: 600;
-    cursor: pointer;
-    flex: 1 0 15%;
-    min-width: 60px;
-    text-align: center;
-  }
-
-  .club-btn.active {
-    background: var(--brass);
-    color: var(--wood);
-  }
-
-  .slider-row {
-    display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 12px;
-    margin-bottom: 10px;
+    background: rgba(0,0,0,0.4);
+    padding: 8px 12px;
+    border-radius: 4px;
+    margin-bottom: 12px;
+    border: 1px solid var(--grass);
   }
+  .test-mode-label { font-size: 0.7rem; font-weight: 600; color: #8fdfbb; text-transform: uppercase; }
+  
+  .slider-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+  .slider-label { font-size: 0.6rem; font-weight: 600; width: 80px; text-transform: uppercase; }
+  .slider-val { font-size: 0.75rem; color: var(--brass); width: 40px; text-align: right; }
 
-  .slider-label {
-    font-size: 0.6rem;
-    font-weight: 600;
-    width: 80px;
-    text-transform: uppercase;
-  }
+  input[type=range] { flex: 1; -webkit-appearance: none; height: 4px; background: rgba(255,255,255,0.1); }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; background: var(--brass); border-radius: 50%; border: 2px solid var(--wood); }
 
-  .slider-val {
-    font-size: 0.75rem;
-    color: var(--brass);
-    width: 40px;
-    text-align: right;
-  }
-
-  input[type=range] {
-    flex: 1;
-    -webkit-appearance: none;
-    height: 4px;
-    background: rgba(255,255,255,0.1);
-  }
-
-  input[type=range]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 22px;
-    height: 22px;
-    background: var(--brass);
-    border-radius: 50%;
-    border: 2px solid var(--wood);
-  }
-
-  .btn-row {
-    display: flex;
-    gap: 8px;
-    position: relative; z-index: 10;
-  }
-
-  .btn {
-    flex: 1;
-    padding: 14px 8px;
-    border: none;
-    border-radius: 6px;
-    font-family: 'Playfair Display', serif;
-    font-size: 1.1rem;
-    cursor: pointer;
-    text-transform: uppercase;
-  }
-
+  .btn-row { display: flex; gap: 8px; position: relative; z-index: 10; }
+  .btn { flex: 1; padding: 14px 8px; border: none; border-radius: 6px; font-family: 'Playfair Display', serif; font-size: 1.1rem; cursor: pointer; text-transform: uppercase; }
   .btn-launch { background: var(--brass); color: var(--wood); font-weight: 700; }
   .btn-next { background: var(--grass); color: var(--parchment); display: none; }
   .btn-reset { background: #4a1e1e; color: var(--parchment); font-size: 0.8rem; }
@@ -197,18 +91,18 @@
 <body>
 
 <div style="position: relative; z-index: 10;">
-  <h2>⛳ JAFUR GOLF ver 7</h2>
-  <div class="subtitle">Biltmore Forest CC • Ladies White Tee</div>
+  <h2>⛳ JAFUR GOLF ver 8</h2>
+  <div class="subtitle">Biltmore Forest CC • Club Lab Edition</div>
 
   <div class="scoreboard">
-    <div class="statStatstatstatstat-statstatstat stat"><div class="stat-label">Hole</div><div class="stat-val" id="holeNum">1</div></div>
-    <div class="statStatstatstatstat-statstatstat stat"><div class="stat-label">Par Dist</div><div class="stat-val" id="holeDist">—</div></div>
-    <div class="statStatstatstatstat-statstatstat stat"><div class="stat-label">Remain</div><div class="stat-val" id="remain">—</div></div>
-    <div class="statStatstatstatstat-statstatstat stat"><div class="stat-label">Shot</div><div class="stat-val" id="lastShot">—</div></div>
-    <div class="statStatstatstatstat-statstatstat stat"><div class="stat-label">Total</div><div class="stat-val" id="totalScore">0</div></div>
+    <div class="stat"><div class="stat-label">Hole</div><div class="stat-val" id="holeNum">1</div></div>
+    <div class="stat"><div class="stat-label">Par Dist</div><div class="stat-val" id="holeDist">—</div></div>
+    <div class="stat"><div class="stat-label">Remain</div><div class="stat-val" id="remain">—</div></div>
+    <div class="stat"><div class="stat-label">Shot</div><div class="stat-val" id="lastShot">—</div></div>
+    <div class="stat"><div class="stat-label">Total</div><div class="stat-val" id="totalScore">0</div></div>
   </div>
 
-  <div id="feedback">Welcome to the first tee.</div>
+  <div id="feedback">Ready for testing.</div>
 
   <svg id="course" viewBox="0 0 400 200" xmlns="http://www.w3.org/2000/svg">
     <rect width="400" height="200" fill="#0a1f16"/>
@@ -216,12 +110,19 @@
     <ellipse cx="360" cy="185" rx="30" ry="8" fill="#2d6a4f" stroke="var(--brass)" stroke-width="0.5"/>
     <line x1="360" y1="155" x2="360" y2="185" stroke="#fff" stroke-width="1"/>
     <polygon points="360,155 374,161 360,167" fill="#c0392b"/>
+    <g id="ghostPaths"></g>
     <path id="shotPath" stroke="var(--parchment)" fill="none" stroke-width="2" stroke-dasharray="2,2" opacity="0"/>
     <circle id="ball" cx="11" cy="185" r="4" fill="white"/>
   </svg>
 
   <div class="controls">
+    <div class="test-mode-row">
+      <span class="test-mode-label">Test Mode (Mulligans)</span>
+      <input type="checkbox" id="testMode" onchange="toggleTestMode()">
+    </div>
+
     <div class="club-row" id="clubButtons"></div>
+    
     <div class="slider-row">
       <span class="slider-label">Speed</span>
       <input type="range" id="clubSpeed" min="1" max="130" value="100">
@@ -229,12 +130,12 @@
     </div>
     <div class="slider-row">
       <span class="slider-label">Angle</span>
-      <input type="range" id="launchAngle" min="8" max="20" value="12">
+      <input type="range" id="launchAngle" min="8" max="25" value="12">
       <span class="slider-val" id="launchVal">12</span>
     </div>
     <div class="slider-row">
       <span class="slider-label">Spin</span>
-      <input type="range" id="spinRate" min="2000" max="3500" value="2500">
+      <input type="range" id="spinRate" min="1500" max="4500" value="2500">
       <span class="slider-val" id="spinVal">2500</span>
     </div>
     <div class="slider-row">
@@ -252,24 +153,21 @@
 </div>
 
 <script>
+// UPDATED CLUB ARRAY with Smash and Spin variables
 const clubs = [
-  {name: "DRIVER", id: "dr", speedMult: 1.00, launchBias: -1, spinMult: 0.78},
-  {name: "3-WOOD", id: "3w", speedMult: 0.93, launchBias: 0, spinMult: 0.88},
-  {name: "1-IRON", id: "1i", speedMult: 0.90, launchBias: -3, spinMult: 0.85},
-  {name: "2-IRON", id: "2i", speedMult: 0.87, launchBias: -1, spinMult: 0.92},
-  {name: "4-HYB",  id: "4h", speedMult: 0.84, launchBias: 2, spinMult: 1.10},
-  {name: "5-IRON", id: "5i", speedMult: 0.79, launchBias: 2, spinMult: 1.15},
-  {name: "6-IRON", id: "6i", speedMult: 0.75, launchBias: 3, spinMult: 1.26},
-  {name: "7-IRON", id: "7i", speedMult: 0.71, launchBias: 4, spinMult: 1.38},
-  {name: "8-IRON", id: "8i", speedMult: 0.67, launchBias: 5, spinMult: 1.50},
-  {name: "9-IRON", id: "9i", speedMult: 0.64, launchBias: 6, spinMult: 1.60},
-  {name: "PW",     id: "pw", speedMult: 0.58, launchBias: 8, spinMult: 1.85},
-  {name: "SW",     id: "sw", speedMult: 0.52, launchBias: 10, spinMult: 2.20}
+  {name: "DRIVER", id: "dr", speedMult: 1.00, launchBias: -1, spinMult: 0.78, smash: 1.48},
+  {name: "FANTASY DR", id: "fdr", speedMult: 1.02, launchBias: -2, spinMult: 0.65, smash: 1.51},
+  {name: "3-WOOD", id: "3w", speedMult: 0.93, launchBias: 0, spinMult: 0.88, smash: 1.45},
+  {name: "4-HYB",  id: "4h", speedMult: 0.84, launchBias: 2, spinMult: 1.10, smash: 1.40},
+  {name: "5-IRON", id: "5i", speedMult: 0.79, launchBias: 2, spinMult: 1.15, smash: 1.38},
+  {name: "7-IRON", id: "7i", speedMult: 0.71, launchBias: 4, spinMult: 1.38, smash: 1.33},
+  {name: "9-IRON", id: "9i", speedMult: 0.64, launchBias: 6, spinMult: 1.60, smash: 1.28},
+  {name: "SW",     id: "sw", speedMult: 0.52, launchBias: 10, spinMult: 2.20, smash: 1.15}
 ];
 
 let selectedClub = clubs[0];
 const DISTANCES = [314,397,129,425,385,366,409,390,149,375,354,313,443,271,193,395,421,365];
-const game = { hole: 1, remaining: 0, strokesHole: 0, total: 0, busy: false, ballX: 11 };
+const game = { hole: 1, remaining: 0, strokesHole: 0, total: 0, busy: false, ballX: 11, initialBallX: 11 };
 
 function simulate(clubSpeedMph, launchDeg, spinRpm, windMph) {
   const windMs = windMph * 0.447;
@@ -277,7 +175,9 @@ function simulate(clubSpeedMph, launchDeg, spinRpm, windMph) {
   const rho = 1.2;
   const ballMass = 0.046;
   const ballRadius = 0.021;
-  const v0 = clubSpeedMph * 0.447 * 1.48;        
+  
+  // Use club-specific smash factor
+  const v0 = clubSpeedMph * 0.447 * (selectedClub.smash || 1.48);        
   const theta = launchDeg * Math.PI / 180;
 
   const pts2 = [];
@@ -292,7 +192,7 @@ function simulate(clubSpeedMph, launchDeg, spinRpm, windMph) {
     const relVx = vx2 - windMs;
     const relSpd = Math.sqrt(relVx * relVx + vy2 * vy2);
     const Fd = 0.5 * rho * relSpd * relSpd * (Math.PI * ballRadius * ballRadius) * 0.3;
-    const omega2 = spinRpm * 2 * Math.PI / 60;
+    const omega2 = (spinRpm * selectedClub.spinMult) * 2 * Math.PI / 60;
     const Fl = 0.000012 * omega2 * relSpd;
     const ax2 = -(Fd / ballMass) * (relVx / relSpd);
     const ay2 = -(Fd / ballMass) * (vy2 / relSpd) - g + (Fl / ballMass);
@@ -304,6 +204,16 @@ function simulate(clubSpeedMph, launchDeg, spinRpm, windMph) {
   }
   const carryYd = (pts2[pts2.length - 1].x) * 1.094;
   return { carry: carryYd, total: carryYd * 1.12, rawPoints: pts2 };
+}
+
+function toggleTestMode() {
+  const isTest = document.getElementById('testMode').checked;
+  if (!isTest) {
+    // Clearing ghosts when turning off
+    document.getElementById('ghostPaths').innerHTML = '';
+  } else {
+    document.getElementById('feedback').textContent = "Testing Mode: Mulligans active.";
+  }
 }
 
 function animateShot(pts, carryYds, totalYds, holeDist, cb) {
@@ -320,12 +230,31 @@ function animateShot(pts, carryYds, totalYds, holeDist, cb) {
   for(let i=1; i<=10; i++) scaled.push({x: last.x + (endX-last.x)*(i/10), y:185});
   
   const path = document.getElementById('shotPath');
-  path.setAttribute('d', scaled.map((p,i) => `${i==0?'M':'L'}${p.x},${p.y}`).join(' '));
+  const dAttr = scaled.map((p,i) => `${i==0?'M':'L'}${p.x},${p.y}`).join(' ');
+  path.setAttribute('d', dAttr);
   path.setAttribute('opacity', '1');
+  
   let i = 0;
   const ball = document.getElementById('ball');
   function frame() {
-    if (i >= scaled.length) { game.ballX = endX; ball.setAttribute('cx', endX); ball.setAttribute('cy', 185); cb(); return; }
+    if (i >= scaled.length) { 
+      if (document.getElementById('testMode').checked) {
+        // Save ghost path
+        const g = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        g.setAttribute('d', dAttr);
+        g.setAttribute('stroke', 'rgba(212, 175, 55, 0.4)');
+        g.setAttribute('fill', 'none');
+        g.setAttribute('stroke-width', '1');
+        document.getElementById('ghostPaths').appendChild(g);
+        // Reset ball to start for next test
+        ball.setAttribute('cx', game.ballX);
+        ball.setAttribute('cy', 185);
+      } else {
+        game.ballX = endX; ball.setAttribute('cx', endX); ball.setAttribute('cy', 185); 
+      }
+      cb(); 
+      return; 
+    }
     ball.setAttribute('cx', scaled[i].x); ball.setAttribute('cy', scaled[i].y);
     i++; requestAnimationFrame(frame);
   }
@@ -334,6 +263,7 @@ function animateShot(pts, carryYds, totalYds, holeDist, cb) {
 
 function createClubButtons() {
   const container = document.getElementById('clubButtons');
+  container.innerHTML = '';
   clubs.forEach(c => {
     const b = document.createElement('button');
     b.className = 'club-btn' + (c.id === selectedClub.id ? ' active' : '');
@@ -349,25 +279,36 @@ function createClubButtons() {
 function launchShot() {
   if (game.busy) return; game.busy = true;
   document.getElementById('launchBtn').disabled = true;
+  
+  const isTest = document.getElementById('testMode').checked;
   const spd = parseFloat(document.getElementById('clubSpeed').value) * selectedClub.speedMult;
   const ang = Math.max(8, parseFloat(document.getElementById('launchAngle').value) + selectedClub.launchBias);
-  const spn = parseFloat(document.getElementById('spinRate').value) * selectedClub.spinMult;
+  const spn = parseFloat(document.getElementById('spinRate').value); 
   const wind = parseFloat(document.getElementById('windSpeed').value);
+  
   const res = simulate(spd, ang, spn, wind);
-  game.strokesHole++;
+  
+  if (!isTest) game.strokesHole++;
+  
   document.getElementById('lastShot').textContent = res.total.toFixed(0);
+  
   animateShot(res.rawPoints, res.carry, res.total, DISTANCES[game.hole-1], () => {
-    game.remaining -= res.total;
-    document.getElementById('remain').textContent = Math.max(0, game.remaining).toFixed(0);
-    if(game.remaining < -12) {
-      game.strokesHole++; // ADD STROKE FOR CHIP BACK
-      finishHole(`Overshot by ${Math.abs(game.remaining).toFixed(0)} yards. Chipped back and`);
-    } else if(Math.abs(game.remaining) <= 12) {
-      game.remaining = 0; document.getElementById('remain').textContent = '0';
-      finishHole("Splendid! On the green.");
+    if (!isTest) {
+      game.remaining -= res.total;
+      document.getElementById('remain').textContent = Math.max(0, game.remaining).toFixed(0);
+      if(game.remaining < -12) {
+        game.strokesHole++; 
+        finishHole(`Overshot by ${Math.abs(game.remaining).toFixed(0)} yards. Chipped back and`);
+      } else if(Math.abs(game.remaining) <= 12) {
+        game.remaining = 0; document.getElementById('remain').textContent = '0';
+        finishHole("Splendid! On the green.");
+      } else {
+        document.getElementById('feedback').textContent = `${game.remaining.toFixed(0)} yards remaining.`;
+        game.busy = false; document.getElementById('launchBtn').disabled = false;
+      }
     } else {
-      document.getElementById('feedback').textContent = `${game.remaining.toFixed(0)} yards remaining.`;
       game.busy = false; document.getElementById('launchBtn').disabled = false;
+      document.getElementById('feedback').textContent = `Test Result: ${res.total.toFixed(0)} yds. Ready for next test.`;
     }
   });
 }
@@ -386,6 +327,7 @@ function finishHole(msg) {
 function goNextHole() {
   document.getElementById('nextBtn').style.display = 'none';
   document.getElementById('launchBtn').style.display = 'block';
+  document.getElementById('ghostPaths').innerHTML = '';
   if (game.hole >= 18) { alert(`🏁 Round Complete!\nFinal Score: ${game.total}`); return; }
   game.hole++; startHole();
 }
@@ -399,6 +341,7 @@ function startHole() {
   document.getElementById('ball').setAttribute('cx', '11');
   document.getElementById('ball').setAttribute('cy', '185');
   document.getElementById('shotPath').setAttribute('opacity', '0');
+  document.getElementById('ghostPaths').innerHTML = '';
   document.getElementById('feedback').textContent = `Hole ${game.hole} — ${game.remaining} yards.`;
   document.getElementById('launchBtn').disabled = false;
 }
@@ -417,6 +360,7 @@ startHole();
 </script>
 </body>
 </html>
+
 
 
 
