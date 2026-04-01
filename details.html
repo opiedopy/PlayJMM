@@ -39,6 +39,15 @@
     margin-bottom: 20px;
   }
 
+  .math-block {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 10px;
+    border-left: 3px solid var(--brass);
+    margin: 10px 0;
+    font-family: monospace;
+    font-size: 0.9rem;
+  }
+
   ul { padding-left: 20px; margin-bottom: 15px; }
   li { margin-bottom: 8px; }
   b { color: var(--brass); }
@@ -62,7 +71,9 @@
     border-radius: 6px;
     margin-top: 40px;
     box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    transition: transform 0.1s;
   }
+  .btn-back:active { transform: translateY(2px); }
 </style>
 </head>
 <body>
@@ -99,21 +110,44 @@
     <h3>3. Atmospheric Calibration</h3>
     <p>Hardcoded for <b>Asheville, NC (2,165')</b>:</p>
     <ul>
-      <li><b>Air Density (rho):</b> 1.15 \, kg/m^3
-        . Thinner air = less drag/lift.</li>
-      <li><b>Gravity (g):</b> 9.796 \, m/s^2. Slightly weaker than standard 9.81.</li>
+      <li><b>Air Density (ρ):</b> 1.15 kg/m³. Thinner air = less drag/lift.</li>
+      <li><b>Gravity (g):</b> 9.796 m/s². Slightly weaker than standard 9.81.</li>
+    </ul>
+  </div>
+
+  <h2>Physics Engine Architecture</h2>
+
+  <div class="content-box">
+    <h3>1. Initial Launch Vector</h3>
+    <p>User inputs are converted into a starting velocity vector in meters per second (m/s):</p>
+    <div class="math-block">
+      V₀ = (ClubSpeed_mph × 0.44704) × SmashFactor<br>
+      Vx = V₀ × cos(LaunchAngle_rad)<br>
+      Vy = V₀ × sin(LaunchAngle_rad)
+    </div>
+
+    <h3>2. Aero Flight (Drag & Lift)</h3>
+    <p>Recalculated every <b>0.015s</b> step. Accounts for wind speed relative to ball velocity.</p>
+    <ul>
+      <li><b>Drag Force:</b> Fd = 0.5 × ρ × V_air² × Cd × Area</li>
+      <li><b>Lift (Magnus):</b> Fl = 0.5 × ρ × V_air² × Cl × Area</li>
+      <li><b>Spin Scaling:</b> Cl is dynamically scaled by (Spin / 3000).</li>
     </ul>
 
-    <h3>4. Aerodynamic Sliders</h3>
-    <ul>
-      <li><b>Drag (Cd):</b> Ball "slipperiness." Low (0.22) = Premium; High (0.30) = Scuffed/Range ball.</li>
-      <li><b>Lift (Cl):</b> Magnus Effect. Determines how much backspin actually "lifts" the ball into the air.</li>
-      <li><b>Spin Rate:</b> High spin increases lift but also increases drag.</li>
-    </ul>
+    <h3>3. Integration Step</h3>
+    <p>Force accumulation and position updates:</p>
+    <div class="math-block">
+      Ax = (A_drag_x + A_lift_x)<br>
+      Ay = (-g + A_drag_y + A_lift_y)<br>
+      V_new = V_old + (A × dt)<br>
+      P_new = P_old + (V × dt)
+    </div>
 
-    <h3>5. Club Mechanics</h3>
+    <h3>4. Ground Game</h3>
+    <p>Triggered when y ≤ 0.</p>
     <ul>
-      <li><b>Smash Factor:</b> Efficiency. Driver is ~1.48 to 1.50. Short irons are lower (1.10 - 1.25) as loft deflects the ball.</li>
+      <li><b>The Bounce:</b> If Vy < -1.5, Vy = -Vy × Firmness and Vx = Vx × Friction.</li>
+      <li><b>The Roll:</b> Horizontal deceleration = g × (1 - Friction).</li>
     </ul>
   </div>
 
@@ -147,4 +181,5 @@
 
 </body>
 </html>
+
 
