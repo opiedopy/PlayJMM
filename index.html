@@ -6,7 +6,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>JMMGolf9</title>
+<title>JMM Club Lab 10</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@400;600&display=swap');
 
@@ -23,7 +23,7 @@
   body {
     font-family: 'Montserrat', sans-serif;
     background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.7)), url('bcc.png');
-    background-color: var(--forest); /* Fallback */
+    background-color: var(--forest);
     background-size: cover;
     background-repeat: no-repeat;
     background-attachment: fixed;
@@ -38,7 +38,6 @@
   h2 { font-family: 'Playfair Display', serif; font-size: 2.2rem; color: var(--brass); text-align: center; margin-bottom: 2px; }
   .subtitle { text-align: center; font-size: 0.7rem; color: var(--brass); text-transform: uppercase; letter-spacing: 3px; margin-bottom: 16px; }
 
-  /* HUD Design */
   .lab-hud {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -89,6 +88,7 @@
     color: var(--parchment);
     text-transform: uppercase;
     margin-bottom: 4px;
+    align-items: center;
   }
   .slider-val { color: var(--brass); font-weight: bold; }
 
@@ -170,7 +170,10 @@
         <input type="range" id="attAngle" min="-10" max="10" step="0.5" value="0">
       </div>
       <div class="slider-box">
-        <div class="slider-label">Backspin <span class="slider-val" id="spinRateVal">2500</span></div>
+        <div class="slider-label">
+          <span>Spin <span style="color:#aaa; font-size:0.5rem;">(SL: <span id="spinLoftVal">0</span>°)</span></span>
+          <span class="slider-val" id="spinRateVal">2500</span>
+        </div>
         <input type="range" id="spinRate" min="500" max="12000" step="100" value="2500">
       </div>
       <div class="slider-box">
@@ -186,12 +189,12 @@
         <input type="range" id="liftMult" min="0.00" max="0.40" step="0.01" value="0.15">
       </div>
       <div class="slider-box">
-        <div class="slider-label">Ball Mass (g) <span class="slider-val" id="ballMassVal">45.9</span></div>
-        <input type="range" id="ballMass" min="30.0" max="60.0" step="0.1" value="45.9">
-      </div>
-      <div class="slider-box">
         <div class="slider-label">Turf Firm <span class="slider-val" id="turfFirmnessVal">0.40</span></div>
         <input type="range" id="turfFirmness" min="0.10" max="0.90" step="0.05" value="0.40">
+      </div>
+      <div class="slider-box">
+        <div class="slider-label">Turf Frict <span class="slider-val" id="turfFrictionVal">0.55</span></div>
+        <input type="range" id="turfFriction" min="0.10" max="0.99" step="0.01" value="0.55">
       </div>
     </div>
   </div>
@@ -219,7 +222,10 @@ const clubs = [
 let selectedClub = clubs[0];
 let currentPathData = "";
 
-const sliderIds = ['clubSpeed', 'smashFactor', 'dynLoft', 'attAngle', 'spinRate', 'windSpeed', 'dragCoeff', 'liftMult', 'ballMass', 'turfFirmness'];
+// Hard-coded Ball Mass (45.93g USGA Limit)
+const BALL_MASS_KG = 0.04593;
+
+const sliderIds = ['clubSpeed', 'smashFactor', 'dynLoft', 'attAngle', 'spinRate', 'windSpeed', 'dragCoeff', 'liftMult', 'turfFirmness', 'turfFriction'];
 sliderIds.forEach(id => {
   document.getElementById(id).addEventListener('input', e => {
     let val = e.target.value;
@@ -272,21 +278,21 @@ function updatePhysics() {
   const dynLoft = parseFloat(document.getElementById('dynLoft').value);
   const attAngle = parseFloat(document.getElementById('attAngle').value);
   
-  // Realism Logic: Launch Angle Calculation
+  // Real-time Spin Loft display
+  const spinLoft = dynLoft - attAngle;
+  document.getElementById('spinLoftVal').textContent = spinLoft.toFixed(1);
+
   const launchDeg = attAngle + (dynLoft - attAngle) * 0.8;
-  
   const backspin = parseFloat(document.getElementById('spinRate').value);
   const windMph = parseFloat(document.getElementById('windSpeed').value);
   const Cd = parseFloat(document.getElementById('dragCoeff').value);
   const Cl_base = parseFloat(document.getElementById('liftMult').value);
-  const massGrams = parseFloat(document.getElementById('ballMass').value);
   const firmness = parseFloat(document.getElementById('turfFirmness').value);
-  const friction = 0.55; // Constant from original for logic integrity
+  const friction = parseFloat(document.getElementById('turfFriction').value);
 
   const rho = 1.15;  
   const g = 9.796;   
   const area = 0.001432; 
-  const mass = massGrams / 1000; 
 
   const v0 = speedMph * 0.44704 * smash; 
   const rad = launchDeg * Math.PI / 180;
@@ -306,25 +312,30 @@ function updatePhysics() {
     let Vair_x = vx - v_wind;
     let Vair_y = vy;
     let Vair = Math.sqrt(Vair_x * Vair_x + Vair_y * Vair_y);
+    
     if (y > 0 || !hasLanded) {
       if (Vair > 0) {
         let Fd = 0.5 * rho * Vair * Vair * Cd * area;
-        let ad = Fd / mass;
+        let ad = Fd / BALL_MASS_KG;
         let ad_x = -ad * (Vair_x / Vair);
         let ad_y = -ad * (Vair_y / Vair);
+        
         let Cl = Cl_base * (backspin / 3000);
         let Fl = 0.5 * rho * Vair * Vair * Cl * area;
-        let al = Fl / mass;
+        let al = Fl / BALL_MASS_KG;
         let al_x = -al * (Vair_y / Vair); 
         let al_y = al * (Vair_x / Vair);
+        
         vx += (ad_x + al_x) * dt;
         vy += (-g + ad_y + al_y) * dt;
       } else {
         vy -= g * dt;
       }
     }
+    
     x += vx * dt;
     y += vy * dt;
+    
     if (y <= 0) {
       if (!hasLanded) {
         carry = x * 1.09361;
@@ -333,10 +344,10 @@ function updatePhysics() {
       y = 0;
       if (vy < -1.5) {
         vy = -vy * firmness;
-        vx = vx * 0.55; 
+        vx = vx * friction; 
       } else {
         vy = 0;
-        let rollDecel = g * (1 - 0.55); 
+        let rollDecel = g * (1 - friction); 
         vx -= rollDecel * dt;
         if (vx < 0) vx = 0;
       }
@@ -345,7 +356,6 @@ function updatePhysics() {
   }
   pts.push({ x: x, y: y });
   let total = x * 1.09361; 
-  if (carry === 0) carry = total; 
   drawPath(pts, carry, total, apex * 1.09361);
 }
 
@@ -396,3 +406,5 @@ updatePhysics();
 
 
 
+
+ 
