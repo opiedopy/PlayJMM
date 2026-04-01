@@ -6,7 +6,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>JMM Golf - Live Lab ver2</title>
+<title>JMM Golf - Live Lab ver 2 (Asheville)</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@400;600&display=swap');
 
@@ -22,7 +22,8 @@
 
   body {
     font-family: 'Montserrat', sans-serif;
-    background-image: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.6)), url('bcc.png');
+    background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.7)), url('bcc.png');
+    background-color: var(--forest); /* Fallback */
     background-size: cover;
     background-repeat: no-repeat;
     background-attachment: fixed;
@@ -37,7 +38,7 @@
   h2 { font-family: 'Playfair Display', serif; font-size: 2.2rem; color: var(--brass); text-align: center; margin-bottom: 2px; }
   .subtitle { text-align: center; font-size: 0.7rem; color: var(--brass); text-transform: uppercase; letter-spacing: 3px; margin-bottom: 16px; }
 
-  /* New HUD Design */
+  /* HUD Design */
   .lab-hud {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -45,53 +46,83 @@
     margin-bottom: 14px;
     position: relative; z-index: 10;
   }
-  .hud-stat { background: rgba(0, 0, 0, 0.6); border: 1px solid var(--brass); border-radius: 4px; padding: 10px 4px; text-align: center; }
-  .hud-label { font-size: 0.5rem; color: var(--brass); text-transform: uppercase; margin-bottom: 4px; }
+  .hud-stat { background: rgba(0, 0, 0, 0.6); border: 1px solid var(--brass); border-radius: 4px; padding: 10px 4px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+  .hud-label { font-size: 0.55rem; color: var(--brass); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
   .hud-val { font-size: 1.2rem; font-weight: 600; color: #fff; }
+  .hud-unit { font-size: 0.6rem; color: #aaa; margin-left: 2px; font-weight: 400;}
 
-  #course { width: 100%; border-radius: 8px; border: 2px solid var(--brass); margin-bottom: 14px; background: #0a1f16; position: relative; z-index: 10; }
+  #course { width: 100%; border-radius: 8px; border: 2px solid var(--brass); margin-bottom: 14px; background: #0a1f16; position: relative; z-index: 10; box-shadow: 0 4px 15px rgba(0,0,0,0.6); }
 
   .controls {
     background: var(--wood);
     background-image: linear-gradient(to bottom, #4d3626, #2b1e15);
     border: 1px solid var(--brass);
     border-radius: 8px;
-    padding: 16px;
+    padding: 12px;
     margin-bottom: 14px;
     position: relative; z-index: 10;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
   }
 
-  .club-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
-  .club-btn { padding: 6px 4px; background: #1b1b1b; border: 1px solid var(--brass); border-radius: 4px; color: var(--brass); font-size: 0.6rem; font-weight: 600; cursor: pointer; flex: 1 0 20%; min-width: 65px; text-align: center; }
-  .club-btn.active { background: var(--brass); color: var(--wood); }
+  .club-row { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 12px; }
+  .club-btn { padding: 6px 2px; background: #1b1b1b; border: 1px solid var(--brass); border-radius: 4px; color: var(--brass); font-size: 0.55rem; font-weight: 600; cursor: pointer; flex: 1 0 15%; min-width: 50px; text-align: center; transition: all 0.2s; }
+  .club-btn.active { background: var(--brass); color: var(--wood); box-shadow: 0 0 8px var(--brass); }
 
-  .slider-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
-  .slider-label { font-size: 0.65rem; font-weight: 600; width: 85px; text-transform: uppercase; color: var(--parchment); }
-  .slider-val { font-size: 0.8rem; color: var(--brass); width: 45px; text-align: right; font-weight: bold; }
+  .slider-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 12px;
+  }
 
-  input[type=range] { flex: 1; -webkit-appearance: none; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; }
-  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; background: var(--brass); border-radius: 50%; border: 2px solid var(--wood); cursor: pointer; }
+  .slider-box {
+    background: rgba(0, 0, 0, 0.25);
+    padding: 6px 8px;
+    border-radius: 4px;
+    border: 1px solid rgba(212, 175, 55, 0.15);
+  }
+
+  .slider-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.55rem;
+    font-weight: 600;
+    color: var(--parchment);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .slider-val { color: var(--brass); font-weight: bold; }
+
+  input[type=range] { width: 100%; -webkit-appearance: none; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; background: var(--brass); border-radius: 50%; border: 2px solid var(--wood); cursor: pointer; }
 
   .btn-row { display: flex; gap: 8px; }
-  .btn { flex: 1; padding: 12px; border: none; border-radius: 6px; font-family: 'Montserrat', sans-serif; font-size: 0.85rem; cursor: pointer; text-transform: uppercase; font-weight: 700; letter-spacing: 1px; }
-  .btn-compare { background: var(--grass); color: white; }
-  .btn-reset { background: #4a1e1e; color: white; }
+  .btn { flex: 1; padding: 12px; border: none; border-radius: 6px; font-family: 'Montserrat', sans-serif; font-size: 0.85rem; cursor: pointer; text-transform: uppercase; font-weight: 700; letter-spacing: 1px; transition: transform 0.1s; }
+  .btn:active { transform: translateY(2px); }
+  .btn-compare { background: var(--grass); color: white; border: 1px solid #4ade80; }
+  .btn-reset { background: #4a1e1e; color: white; border: 1px solid #f87171; }
 </style>
 </head>
 <body>
 
 <div style="position: relative; z-index: 10;">
-  <h2>⛳ JMM Club Lab ver2</h2>
-  <div class="subtitle">Golf Physics • Live Lab ver 2</div>
+  <h2>⛳ JMM Club Lab ver 2</h2>
+  <div class="subtitle">Live Aero Physics • Asheville NC (2,165')</div>
 
   <div class="lab-hud">
-    <div class="hud-stat"><div class="hud-label">Carry</div><div class="hud-val" id="valCarry">0</div></div>
-    <div class="hud-stat"><div class="hud-label">Total</div><div class="hud-val" id="valTotal">0</div></div>
-    <div class="hud-stat"><div class="hud-label">Apex</div><div class="hud-val" id="valApex">0</div></div>
+    <div class="hud-stat"><div class="hud-label">Carry</div><div class="hud-val"><span id="valCarry">0</span><span class="hud-unit">yd</span></div></div>
+    <div class="hud-stat"><div class="hud-label">Total</div><div class="hud-val"><span id="valTotal">0</span><span class="hud-unit">yd</span></div></div>
+    <div class="hud-stat"><div class="hud-label">Apex</div><div class="hud-val"><span id="valApex">0</span><span class="hud-unit">yd</span></div></div>
   </div>
 
   <svg id="course" viewBox="0 0 400 200" xmlns="http://www.w3.org/2000/svg">
-    <rect width="400" height="200" fill="#0a1f16"/>
+    <rect width="400" height="200" fill="#0a1f16" opacity="0.8"/>
+    <line x1="106" y1="185" x2="106" y2="190" stroke="#fff" stroke-width="1" opacity="0.3"/>
+    <text x="106" y="198" fill="#fff" font-size="8" text-anchor="middle" opacity="0.4">100</text>
+    <line x1="201" y1="185" x2="201" y2="190" stroke="#fff" stroke-width="1" opacity="0.3"/>
+    <text x="201" y="198" fill="#fff" font-size="8" text-anchor="middle" opacity="0.4">200</text>
+    <line x1="296" y1="185" x2="296" y2="190" stroke="#fff" stroke-width="1" opacity="0.3"/>
+    <text x="296" y="198" fill="#fff" font-size="8" text-anchor="middle" opacity="0.4">300</text>
+    
     <rect x="0" y="185" width="400" height="15" fill="#1b4332"/>
     <ellipse cx="360" cy="185" rx="30" ry="8" fill="#2d6a4f" stroke="var(--brass)" stroke-width="0.5" opacity="0.3"/>
     
@@ -103,133 +134,106 @@
   <div class="controls">
     <div class="club-row" id="clubButtons"></div>
     
-    <div class="slider-row">
-      <span class="slider-label">Club Speed</span>
-      <input type="range" id="clubSpeed" min="40" max="130" value="100">
-      <span class="slider-val" id="clubSpeedVal">100</span>
-    </div>
-    <div class="slider-row">
-      <span class="slider-label">Launch Angle</span>
-      <input type="range" id="launchAngle" min="5" max="45" value="12">
-      <span class="slider-val" id="launchVal">12°</span>
-    </div>
-    <div class="slider-row">
-      <span class="slider-label">Backspin</span>
-      <input type="range" id="spinRate" min="1500" max="8000" value="2500">
-      <span class="slider-val" id="spinVal">2500</span>
-    </div>
-    <div class="slider-row">
-      <span class="slider-label">Wind</span>
-      <input type="range" id="windSpeed" min="-40" max="40" value="0">
-      <span class="slider-val" id="windVal">0</span>
+    <div class="slider-grid">
+      <div class="slider-box">
+        <div class="slider-label">Club Spd <span class="slider-val" id="clubSpeedVal">100</span></div>
+        <input type="range" id="clubSpeed" min="40" max="140" value="100">
+      </div>
+      <div class="slider-box">
+        <div class="slider-label">Smash <span class="slider-val" id="smashFactorVal">1.48</span></div>
+        <input type="range" id="smashFactor" min="1.0" max="1.52" step="0.01" value="1.48">
+      </div>
+      <div class="slider-box">
+        <div class="slider-label">Launch Ang <span class="slider-val" id="launchAngleVal">11°</span></div>
+        <input type="range" id="launchAngle" min="0" max="60" value="11">
+      </div>
+      <div class="slider-box">
+        <div class="slider-label">Backspin <span class="slider-val" id="spinRateVal">2500</span></div>
+        <input type="range" id="spinRate" min="500" max="12000" step="100" value="2500">
+      </div>
+      <div class="slider-box">
+        <div class="slider-label">Wind <span id="windDir">—</span> <span class="slider-val" id="windSpeedVal">0</span></div>
+        <input type="range" id="windSpeed" min="-40" max="40" value="0">
+      </div>
+      <div class="slider-box">
+        <div class="slider-label">Drag (Cd) <span class="slider-val" id="dragCoeffVal">0.24</span></div>
+        <input type="range" id="dragCoeff" min="0.10" max="0.40" step="0.01" value="0.24">
+      </div>
+      <div class="slider-box">
+        <div class="slider-label">Lift (Cl) <span class="slider-val" id="liftMultVal">0.15</span></div>
+        <input type="range" id="liftMult" min="0.00" max="0.40" step="0.01" value="0.15">
+      </div>
+      <div class="slider-box">
+        <div class="slider-label">Ball Mass (g) <span class="slider-val" id="ballMassVal">45.9</span></div>
+        <input type="range" id="ballMass" min="30.0" max="60.0" step="0.1" value="45.9">
+      </div>
+      <div class="slider-box">
+        <div class="slider-label">Turf Firm <span class="slider-val" id="turfFirmnessVal">0.40</span></div>
+        <input type="range" id="turfFirmness" min="0.10" max="0.90" step="0.05" value="0.40">
+      </div>
+      <div class="slider-box">
+        <div class="slider-label">Turf Frict <span class="slider-val" id="turfFrictionVal">0.85</span></div>
+        <input type="range" id="turfFriction" min="0.50" max="0.99" step="0.01" value="0.85">
+      </div>
     </div>
   </div>
 
   <div class="btn-row">
-    <button class="btn btn-compare" onclick="freezeArc()">Freeze Current Arc</button>
-    <button class="btn btn-reset" onclick="resetLab()">Clear All</button>
+    <button class="btn btn-compare" onclick="freezeArc()">Freeze Arc</button>
+    <button class="btn btn-reset" onclick="resetLab()">Clear</button>
   </div>
 </div>
 
 <script>
+// Expanded presets mapped directly to sliders
 const clubs = [
-  {name: "DRIVER", id: "dr", speedMult: 1.00, smash: 1.48, spinMult: 0.8},
-  {name: "FANTASY", id: "fdr", speedMult: 1.02, smash: 1.51, spinMult: 0.7},
-  {name: "3-WOOD", id: "3w", speedMult: 0.93, smash: 1.45, spinMult: 0.9},
-  {name: "5-IRON", id: "5i", speedMult: 0.80, smash: 1.38, spinMult: 1.2},
-  {name: "7-IRON", id: "7i", speedMult: 0.72, smash: 1.33, spinMult: 1.4},
-  {name: "9-IRON", id: "9i", speedMult: 0.65, smash: 1.28, spinMult: 1.7},
-  {name: "SW",     id: "sw", speedMult: 0.55, smash: 1.15, spinMult: 2.2}
+  {name: "DRIVER", id: "dr", speed: 100, smash: 1.48, launch: 11, spin: 2500},
+  {name: "3-WOOD", id: "3w", speed: 95,  smash: 1.45, launch: 13, spin: 3000},
+  {name: "1-IRON", id: "1i", speed: 90,  smash: 1.42, launch: 10, spin: 3200},
+  {name: "4-HYB",  id: "4h", speed: 85,  smash: 1.38, launch: 14, spin: 4000},
+  {name: "5-IRON", id: "5i", speed: 82,  smash: 1.35, launch: 15, spin: 4500},
+  {name: "7-IRON", id: "7i", speed: 76,  smash: 1.29, launch: 20, spin: 6000},
+  {name: "9-IRON", id: "9i", speed: 70,  smash: 1.23, launch: 28, spin: 8000},
+  {name: "PW",     id: "pw", speed: 65,  smash: 1.18, launch: 34, spin: 9000},
+  {name: "SW",     id: "sw", speed: 60,  smash: 1.12, launch: 40, spin: 10000}
 ];
 
 let selectedClub = clubs[0];
 let currentPathData = "";
 
-function updatePhysics() {
-  const clubSpeed = parseFloat(document.getElementById('clubSpeed').value);
-  const launchDeg = parseFloat(document.getElementById('launchAngle').value);
-  const spinRpm = parseFloat(document.getElementById('spinRate').value);
-  const windMph = parseFloat(document.getElementById('windSpeed').value);
-
-  const windMs = windMph * 0.447;
-  const g = 9.81;
-  const rho = 1.2;
-  const ballMass = 0.046;
-  const ballRadius = 0.021;
-  
-  // Real-time calculation
-  const v0 = (clubSpeed * selectedClub.speedMult) * 0.447 * selectedClub.smash;        
-  const theta = launchDeg * Math.PI / 180;
-
-  const pts = [];
-  let vx = v0 * Math.cos(theta);
-  let vy = v0 * Math.sin(theta);
-  let x = 0, y = 0;
-  let maxH = 0;
-  const dt = 0.015;
-
-  for (let i = 0; i < 2000; i++) {
-    pts.push({ x: x, y: y });
-    if (y > maxH) maxH = y;
-
-    const spd = Math.sqrt(vx * vx + vy * vy);
-    const relVx = vx - windMs;
-    const relSpd = Math.sqrt(relVx * relVx + vy * vy);
+// Attach event listeners to all 10 sliders for Live Update
+const sliderIds = ['clubSpeed', 'smashFactor', 'launchAngle', 'spinRate', 'windSpeed', 'dragCoeff', 'liftMult', 'ballMass', 'turfFirmness', 'turfFriction'];
+sliderIds.forEach(id => {
+  document.getElementById(id).addEventListener('input', e => {
+    let val = e.target.value;
+    if (id === 'launchAngle') {
+      document.getElementById(id + 'Val').textContent = val + "°";
+    } else {
+      document.getElementById(id + 'Val').textContent = val;
+    }
     
-    const Fd = 0.5 * rho * relSpd * relSpd * (Math.PI * ballRadius * ballRadius) * 0.3;
-    const omega = (spinRpm * selectedClub.spinMult) * 2 * Math.PI / 60;
-    const Fl = 0.000012 * omega * relSpd;
-    
-    const ax = -(Fd / ballMass) * (relVx / relSpd);
-    const ay = -(Fd / ballMass) * (vy / relSpd) - g + (Fl / ballMass);
-    
-    vx += ax * dt;
-    vy += ay * dt;
-    x += vx * dt;
-    y += vy * dt;
-    if (y < 0) break;
-  }
+    if (id === 'windSpeed') {
+      document.getElementById('windDir').textContent = val > 0 ? '→' : val < 0 ? '←' : '—';
+    }
+    updatePhysics(); // Trigger live calculation on any slider move
+  });
+});
 
-  const carryYd = x * 1.094;
-  const totalYd = carryYd * 1.12; // Standard rollout
+function applyClubPreset(c) {
+  selectedClub = c;
+  document.getElementById('clubSpeed').value = c.speed;
+  document.getElementById('clubSpeedVal').textContent = c.speed;
   
-  drawPath(pts, carryYd, totalYd, maxH);
-}
-
-function drawPath(pts, carry, total, apex) {
-  // Scaling for 400x200 SVG
-  const scaleX = 1.1; 
-  const scaleY = 2.8;
-  const startX = 11;
-  const startY = 185;
-
-  const d = pts.map((p, i) => {
-    const sx = startX + (p.x * scaleX);
-    const sy = startY - (p.y * scaleY);
-    return `${i === 0 ? 'M' : 'L'}${sx},${sy}`;
-  }).join(' ');
-
-  currentPathData = d;
-  document.getElementById('livePath').setAttribute('d', d);
+  document.getElementById('smashFactor').value = c.smash;
+  document.getElementById('smashFactorVal').textContent = c.smash.toFixed(2);
   
-  // Update HUD
-  document.getElementById('valCarry').textContent = Math.round(carry);
-  document.getElementById('valTotal').textContent = Math.round(total);
-  document.getElementById('valApex').textContent = Math.round(apex * 1.094);
-}
-
-function freezeArc() {
-  const gLayer = document.getElementById('ghostLayer');
-  const ghost = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  ghost.setAttribute('d', currentPathData);
-  ghost.setAttribute('stroke', 'rgba(253, 245, 230, 0.3)');
-  ghost.setAttribute('fill', 'none');
-  ghost.setAttribute('stroke-width', '1');
-  gLayer.appendChild(ghost);
-}
-
-function resetLab() {
-  document.getElementById('ghostLayer').innerHTML = '';
+  document.getElementById('launchAngle').value = c.launch;
+  document.getElementById('launchAngleVal').textContent = c.launch + "°";
+  
+  document.getElementById('spinRate').value = c.spin;
+  document.getElementById('spinRateVal').textContent = c.spin;
+  
+  updatePhysics();
 }
 
 function createClubButtons() {
@@ -241,36 +245,162 @@ function createClubButtons() {
     b.onclick = () => {
       document.querySelectorAll('.club-btn').forEach(btn => btn.classList.remove('active'));
       b.classList.add('active'); 
-      selectedClub = c;
-      updatePhysics();
+      applyClubPreset(c);
     };
     container.appendChild(b);
   });
 }
 
-// Event Listeners for Live Updates
-document.getElementById('clubSpeed').oninput = e => {
-  document.getElementById('clubSpeedVal').textContent = e.target.value;
-  updatePhysics();
-};
-document.getElementById('launchAngle').oninput = e => {
-  document.getElementById('launchVal').textContent = e.target.value + "°";
-  updatePhysics();
-};
-document.getElementById('spinRate').oninput = e => {
-  document.getElementById('spinVal').textContent = e.target.value;
-  updatePhysics();
-};
-document.getElementById('windSpeed').oninput = e => {
-  document.getElementById('windVal').textContent = e.target.value;
-  updatePhysics();
-};
+function updatePhysics() {
+  // Read all 10 sliders
+  const speedMph = parseFloat(document.getElementById('clubSpeed').value);
+  const smash = parseFloat(document.getElementById('smashFactor').value);
+  const launchDeg = parseFloat(document.getElementById('launchAngle').value);
+  const backspin = parseFloat(document.getElementById('spinRate').value);
+  const windMph = parseFloat(document.getElementById('windSpeed').value);
+  const Cd = parseFloat(document.getElementById('dragCoeff').value);
+  const Cl_base = parseFloat(document.getElementById('liftMult').value);
+  const massGrams = parseFloat(document.getElementById('ballMass').value);
+  const firmness = parseFloat(document.getElementById('turfFirmness').value);
+  const friction = parseFloat(document.getElementById('turfFriction').value);
 
+  // ASHEVILLE LAB HARDCODED CONDITIONS
+  const rho = 1.15;  // Air density (kg/m^3) at ~2165 ft
+  const g = 9.796;   // Gravity (m/s^2) for Asheville region
+  
+  const area = 0.001432; // Standard ball cross-sectional area (m^2)
+  const mass = massGrams / 1000; // Convert to kg
+
+  // Initial Launch Conditions
+  const v0 = speedMph * 0.44704 * smash; // m/s
+  const rad = launchDeg * Math.PI / 180;
+  let vx = v0 * Math.cos(rad);
+  let vy = v0 * Math.sin(rad);
+  
+  const v_wind = windMph * 0.44704; // Wind m/s
+
+  let x = 0, y = 0, apex = 0;
+  const dt = 0.015; // Fine time step for Euler integration
+  const pts = [];
+  let carry = 0;
+  let hasLanded = false;
+
+  // Aerodynamic Euler Loop
+  for (let i = 0; i < 2000; i++) {
+    // Save points for rendering (skip some to keep path lightweight)
+    if (i % 2 === 0) pts.push({ x: x, y: y });
+    
+    if (y > apex) apex = y;
+
+    // Air relative velocity vectors
+    let Vair_x = vx - v_wind;
+    let Vair_y = vy;
+    let Vair = Math.sqrt(Vair_x * Vair_x + Vair_y * Vair_y);
+
+    if (y > 0 || !hasLanded) {
+      if (Vair > 0) {
+        // Drag Force Calculation
+        let Fd = 0.5 * rho * Vair * Vair * Cd * area;
+        let ad = Fd / mass;
+        let ad_x = -ad * (Vair_x / Vair);
+        let ad_y = -ad * (Vair_y / Vair);
+
+        // Magnus Lift Force Calculation (scaled by RPM)
+        let Cl = Cl_base * (backspin / 3000);
+        let Fl = 0.5 * rho * Vair * Vair * Cl * area;
+        let al = Fl / mass;
+        // Lift acts perpendicular to relative air velocity
+        let al_x = -al * (Vair_y / Vair); 
+        let al_y = al * (Vair_x / Vair);
+
+        // Apply accelerations
+        vx += (ad_x + al_x) * dt;
+        vy += (-g + ad_y + al_y) * dt;
+      } else {
+        vy -= g * dt; // Pure freefall if velocity hits 0 (edge case)
+      }
+    }
+
+    // Kinematic translation
+    x += vx * dt;
+    y += vy * dt;
+
+    // Turf Interaction (Bounce & Roll)
+    if (y <= 0) {
+      if (!hasLanded) {
+        carry = x * 1.09361; // Record carry in yards
+        hasLanded = true;
+      }
+      y = 0;
+      
+      if (vy < -1.5) {
+        // Bounce Phase
+        vy = -vy * firmness;
+        vx = vx * friction; 
+      } else {
+        // Roll Phase
+        vy = 0;
+        let rollDecel = g * (1 - friction); 
+        vx -= rollDecel * dt;
+        if (vx < 0) vx = 0; // Stop when rolling energy is spent
+      }
+      
+      if (vx === 0 && vy === 0) break; // Ball is dead
+    }
+  }
+
+  // Ensure last point is recorded
+  pts.push({ x: x, y: y });
+  
+  let total = x * 1.09361; // Yards
+  if (carry === 0) carry = total; // Failsafe for duffed shots
+  
+  drawPath(pts, carry, total, apex * 1.09361);
+}
+
+function drawPath(pts, carry, total, apex) {
+  // Scaling for 400x200 SVG to fit ~380 yards on screen
+  const scaleX = 0.95; // 1 pixel = ~1.05 yards
+  const scaleY = 2.0;
+  const startX = 11;
+  const startY = 185;
+
+  const d = pts.map((p, i) => {
+    const sx = startX + ((p.x * 1.09361) * scaleX);
+    const sy = startY - ((p.y * 1.09361) * scaleY);
+    return `${i === 0 ? 'M' : 'L'}${sx},${sy}`;
+  }).join(' ');
+
+  currentPathData = d;
+  document.getElementById('livePath').setAttribute('d', d);
+  
+  // Update HUD Display
+  document.getElementById('valCarry').textContent = Math.round(carry);
+  document.getElementById('valTotal').textContent = Math.round(total);
+  document.getElementById('valApex').textContent = Math.round(apex);
+}
+
+function freezeArc() {
+  const gLayer = document.getElementById('ghostLayer');
+  const ghost = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  ghost.setAttribute('d', currentPathData);
+  ghost.setAttribute('stroke', 'rgba(212, 175, 55, 0.25)'); // Faint brass
+  ghost.setAttribute('fill', 'none');
+  ghost.setAttribute('stroke-width', '1.5');
+  gLayer.appendChild(ghost);
+}
+
+function resetLab() {
+  document.getElementById('ghostLayer').innerHTML = '';
+}
+
+// Initialize
 createClubButtons();
-updatePhysics(); // Initial Draw
+updatePhysics(); 
 </script>
 </body>
 </html>
+
 
 
 
