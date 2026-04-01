@@ -92,8 +92,26 @@
   }
   .slider-val { color: var(--brass); font-weight: bold; }
 
-  input[type=range] { width: 100%; -webkit-appearance: none; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; }
-  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; background: var(--brass); border-radius: 50%; border: 2px solid var(--wood); cursor: pointer; }
+  /* Larger Touch Targets for Sliders */
+  input[type=range] { 
+    width: 100%; 
+    -webkit-appearance: none; 
+    height: 12px; /* Thicker track for easier aim */
+    background: rgba(255,255,255,0.1); 
+    border-radius: 6px; 
+    outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb { 
+    -webkit-appearance: none; 
+    width: 30px;  /* Much larger grabber */
+    height: 30px; 
+    background: var(--brass); 
+    border-radius: 50%; 
+    border: 2px solid var(--wood); 
+    cursor: pointer; 
+    margin-top: -9px; /* Re-centers thumb on thicker track */
+    box-shadow: 0 0 8px rgba(0,0,0,0.5);
+  }
 
   .btn-row { display: flex; gap: 8px; }
   .btn { flex: 1; padding: 12px; border: none; border-radius: 6px; font-family: 'Montserrat', sans-serif; font-size: 0.85rem; cursor: pointer; text-transform: uppercase; font-weight: 700; letter-spacing: 1px; transition: transform 0.1s; }
@@ -185,7 +203,6 @@
 </div>
 
 <script>
-// Expanded presets mapped directly to sliders
 const clubs = [
   {name: "DRIVER", id: "dr", speed: 100, smash: 1.48, launch: 11, spin: 2500},
   {name: "3-WOOD", id: "3w", speed: 95,  smash: 1.45, launch: 13, spin: 3000},
@@ -201,7 +218,6 @@ const clubs = [
 let selectedClub = clubs[0];
 let currentPathData = "";
 
-// Attach event listeners to all 10 sliders for Live Update
 const sliderIds = ['clubSpeed', 'smashFactor', 'launchAngle', 'spinRate', 'windSpeed', 'dragCoeff', 'liftMult', 'ballMass', 'turfFirmness', 'turfFriction'];
 sliderIds.forEach(id => {
   document.getElementById(id).addEventListener('input', e => {
@@ -215,7 +231,7 @@ sliderIds.forEach(id => {
     if (id === 'windSpeed') {
       document.getElementById('windDir').textContent = val > 0 ? '→' : val < 0 ? '←' : '—';
     }
-    updatePhysics(); // Trigger live calculation on any slider move
+    updatePhysics();
   });
 });
 
@@ -223,16 +239,12 @@ function applyClubPreset(c) {
   selectedClub = c;
   document.getElementById('clubSpeed').value = c.speed;
   document.getElementById('clubSpeedVal').textContent = c.speed;
-  
   document.getElementById('smashFactor').value = c.smash;
   document.getElementById('smashFactorVal').textContent = c.smash.toFixed(2);
-  
   document.getElementById('launchAngle').value = c.launch;
   document.getElementById('launchAngleVal').textContent = c.launch + "°";
-  
   document.getElementById('spinRate').value = c.spin;
   document.getElementById('spinRateVal').textContent = c.spin;
-  
   updatePhysics();
 }
 
@@ -252,7 +264,6 @@ function createClubButtons() {
 }
 
 function updatePhysics() {
-  // Read all 10 sliders
   const speedMph = parseFloat(document.getElementById('clubSpeed').value);
   const smash = parseFloat(document.getElementById('smashFactor').value);
   const launchDeg = parseFloat(document.getElementById('launchAngle').value);
@@ -264,117 +275,84 @@ function updatePhysics() {
   const firmness = parseFloat(document.getElementById('turfFirmness').value);
   const friction = parseFloat(document.getElementById('turfFriction').value);
 
-  // ASHEVILLE LAB HARDCODED CONDITIONS
-  const rho = 1.15;  // Air density (kg/m^3) at ~2165 ft
-  const g = 9.796;   // Gravity (m/s^2) for Asheville region
-  
-  const area = 0.001432; // Standard ball cross-sectional area (m^2)
-  const mass = massGrams / 1000; // Convert to kg
+  const rho = 1.15;  
+  const g = 9.796;   
+  const area = 0.001432; 
+  const mass = massGrams / 1000; 
 
-  // Initial Launch Conditions
-  const v0 = speedMph * 0.44704 * smash; // m/s
+  const v0 = speedMph * 0.44704 * smash; 
   const rad = launchDeg * Math.PI / 180;
   let vx = v0 * Math.cos(rad);
   let vy = v0 * Math.sin(rad);
-  
-  const v_wind = windMph * 0.44704; // Wind m/s
+  const v_wind = windMph * 0.44704; 
 
   let x = 0, y = 0, apex = 0;
-  const dt = 0.015; // Fine time step for Euler integration
+  const dt = 0.015; 
   const pts = [];
   let carry = 0;
   let hasLanded = false;
 
-  // Aerodynamic Euler Loop
   for (let i = 0; i < 2000; i++) {
-    // Save points for rendering (skip some to keep path lightweight)
     if (i % 2 === 0) pts.push({ x: x, y: y });
-    
     if (y > apex) apex = y;
-
-    // Air relative velocity vectors
     let Vair_x = vx - v_wind;
     let Vair_y = vy;
     let Vair = Math.sqrt(Vair_x * Vair_x + Vair_y * Vair_y);
-
     if (y > 0 || !hasLanded) {
       if (Vair > 0) {
-        // Drag Force Calculation
         let Fd = 0.5 * rho * Vair * Vair * Cd * area;
         let ad = Fd / mass;
         let ad_x = -ad * (Vair_x / Vair);
         let ad_y = -ad * (Vair_y / Vair);
-
-        // Magnus Lift Force Calculation (scaled by RPM)
         let Cl = Cl_base * (backspin / 3000);
         let Fl = 0.5 * rho * Vair * Vair * Cl * area;
         let al = Fl / mass;
-        // Lift acts perpendicular to relative air velocity
         let al_x = -al * (Vair_y / Vair); 
         let al_y = al * (Vair_x / Vair);
-
-        // Apply accelerations
         vx += (ad_x + al_x) * dt;
         vy += (-g + ad_y + al_y) * dt;
       } else {
-        vy -= g * dt; // Pure freefall if velocity hits 0 (edge case)
+        vy -= g * dt;
       }
     }
-
-    // Kinematic translation
     x += vx * dt;
     y += vy * dt;
-
-    // Turf Interaction (Bounce & Roll)
     if (y <= 0) {
       if (!hasLanded) {
-        carry = x * 1.09361; // Record carry in yards
+        carry = x * 1.09361;
         hasLanded = true;
       }
       y = 0;
-      
       if (vy < -1.5) {
-        // Bounce Phase
         vy = -vy * firmness;
         vx = vx * friction; 
       } else {
-        // Roll Phase
         vy = 0;
         let rollDecel = g * (1 - friction); 
         vx -= rollDecel * dt;
-        if (vx < 0) vx = 0; // Stop when rolling energy is spent
+        if (vx < 0) vx = 0;
       }
-      
-      if (vx === 0 && vy === 0) break; // Ball is dead
+      if (vx === 0 && vy === 0) break;
     }
   }
-
-  // Ensure last point is recorded
   pts.push({ x: x, y: y });
-  
-  let total = x * 1.09361; // Yards
-  if (carry === 0) carry = total; // Failsafe for duffed shots
-  
+  let total = x * 1.09361; 
+  if (carry === 0) carry = total; 
   drawPath(pts, carry, total, apex * 1.09361);
 }
 
 function drawPath(pts, carry, total, apex) {
-  // Scaling for 400x200 SVG to fit ~380 yards on screen
-  const scaleX = 0.95; // 1 pixel = ~1.05 yards
+  const scaleX = 0.95; 
   const scaleY = 2.0;
   const startX = 11;
   const startY = 185;
-
   const d = pts.map((p, i) => {
     const sx = startX + ((p.x * 1.09361) * scaleX);
     const sy = startY - ((p.y * 1.09361) * scaleY);
     return `${i === 0 ? 'M' : 'L'}${sx},${sy}`;
   }).join(' ');
-
   currentPathData = d;
   document.getElementById('livePath').setAttribute('d', d);
-  
-  // Update HUD Display
   document.getElementById('valCarry').textContent = Math.round(carry);
   document.getElementById('valTotal').textContent = Math.round(total);
   document.getElementById('valApex').textContent = Math.round(apex);
@@ -384,7 +362,7 @@ function freezeArc() {
   const gLayer = document.getElementById('ghostLayer');
   const ghost = document.createElementNS("http://www.w3.org/2000/svg", "path");
   ghost.setAttribute('d', currentPathData);
-  ghost.setAttribute('stroke', 'rgba(212, 175, 55, 0.25)'); // Faint brass
+  ghost.setAttribute('stroke', 'rgba(212, 175, 55, 0.25)');
   ghost.setAttribute('fill', 'none');
   ghost.setAttribute('stroke-width', '1.5');
   gLayer.appendChild(ghost);
@@ -394,12 +372,12 @@ function resetLab() {
   document.getElementById('ghostLayer').innerHTML = '';
 }
 
-// Initialize
 createClubButtons();
 updatePhysics(); 
 </script>
 </body>
 </html>
+
 
 
 
