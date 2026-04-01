@@ -162,8 +162,12 @@
         <input type="range" id="smashFactor" min="1.0" max="1.52" step="0.01" value="1.48">
       </div>
       <div class="slider-box">
-        <div class="slider-label">Launch Ang <span class="slider-val" id="launchAngleVal">11°</span></div>
-        <input type="range" id="launchAngle" min="0" max="60" value="11">
+        <div class="slider-label">Dyn Loft <span class="slider-val" id="dynLoftVal">11°</span></div>
+        <input type="range" id="dynLoft" min="5" max="60" value="11">
+      </div>
+      <div class="slider-box">
+        <div class="slider-label">Attack Ang <span class="slider-val" id="attAngleVal">0°</span></div>
+        <input type="range" id="attAngle" min="-10" max="10" step="0.5" value="0">
       </div>
       <div class="slider-box">
         <div class="slider-label">Backspin <span class="slider-val" id="spinRateVal">2500</span></div>
@@ -189,10 +193,6 @@
         <div class="slider-label">Turf Firm <span class="slider-val" id="turfFirmnessVal">0.40</span></div>
         <input type="range" id="turfFirmness" min="0.10" max="0.90" step="0.05" value="0.40">
       </div>
-      <div class="slider-box">
-        <div class="slider-label">Turf Frict <span class="slider-val" id="turfFrictionVal">0.55</span></div>
-        <input type="range" id="turfFriction" min="0.1" max="0.99" step="0.01" value="0.55">
-      </div>
     </div>
   </div>
 
@@ -205,25 +205,25 @@
 
 <script>
 const clubs = [
-  {name: "DRIVER", id: "dr", speed: 100, smash: 1.48, launch: 11, spin: 2500},
-  {name: "3-WOOD", id: "3w", speed: 95,  smash: 1.45, launch: 13, spin: 3000},
-  {name: "1-IRON", id: "1i", speed: 90,  smash: 1.42, launch: 10, spin: 3200},
-  {name: "4-HYB",  id: "4h", speed: 85,  smash: 1.38, launch: 14, spin: 4000},
-  {name: "5-IRON", id: "5i", speed: 82,  smash: 1.35, launch: 15, spin: 4500},
-  {name: "7-IRON", id: "7i", speed: 76,  smash: 1.29, launch: 20, spin: 6000},
-  {name: "9-IRON", id: "9i", speed: 70,  smash: 1.23, launch: 28, spin: 8000},
-  {name: "PW",     id: "pw", speed: 65,  smash: 1.18, launch: 34, spin: 9000},
-  {name: "SW",     id: "sw", speed: 60,  smash: 1.12, launch: 40, spin: 10000}
+  {name: "DRIVER", id: "dr", speed: 100, smash: 1.48, loft: 11, spin: 2500},
+  {name: "3-WOOD", id: "3w", speed: 95,  smash: 1.45, loft: 13, spin: 3000},
+  {name: "1-IRON", id: "1i", speed: 90,  smash: 1.42, loft: 10, spin: 3200},
+  {name: "4-HYB",  id: "4h", speed: 85,  smash: 1.38, loft: 14, spin: 4000},
+  {name: "5-IRON", id: "5i", speed: 82,  smash: 1.35, loft: 15, spin: 4500},
+  {name: "7-IRON", id: "7i", speed: 76,  smash: 1.29, loft: 20, spin: 6000},
+  {name: "9-IRON", id: "9i", speed: 70,  smash: 1.23, loft: 28, spin: 8000},
+  {name: "PW",     id: "pw", speed: 65,  smash: 1.18, loft: 34, spin: 9000},
+  {name: "SW",     id: "sw", speed: 60,  smash: 1.12, loft: 40, spin: 10000}
 ];
 
 let selectedClub = clubs[0];
 let currentPathData = "";
 
-const sliderIds = ['clubSpeed', 'smashFactor', 'launchAngle', 'spinRate', 'windSpeed', 'dragCoeff', 'liftMult', 'ballMass', 'turfFirmness', 'turfFriction'];
+const sliderIds = ['clubSpeed', 'smashFactor', 'dynLoft', 'attAngle', 'spinRate', 'windSpeed', 'dragCoeff', 'liftMult', 'ballMass', 'turfFirmness'];
 sliderIds.forEach(id => {
   document.getElementById(id).addEventListener('input', e => {
     let val = e.target.value;
-    if (id === 'launchAngle') {
+    if (id === 'dynLoft' || id === 'attAngle') {
       document.getElementById(id + 'Val').textContent = val + "°";
     } else {
       document.getElementById(id + 'Val').textContent = val;
@@ -242,8 +242,10 @@ function applyClubPreset(c) {
   document.getElementById('clubSpeedVal').textContent = c.speed;
   document.getElementById('smashFactor').value = c.smash;
   document.getElementById('smashFactorVal').textContent = c.smash.toFixed(2);
-  document.getElementById('launchAngle').value = c.launch;
-  document.getElementById('launchAngleVal').textContent = c.launch + "°";
+  document.getElementById('dynLoft').value = c.loft;
+  document.getElementById('dynLoftVal').textContent = c.loft + "°";
+  document.getElementById('attAngle').value = 0;
+  document.getElementById('attAngleVal').textContent = "0°";
   document.getElementById('spinRate').value = c.spin;
   document.getElementById('spinRateVal').textContent = c.spin;
   updatePhysics();
@@ -254,7 +256,7 @@ function createClubButtons() {
   clubs.forEach(c => {
     const b = document.createElement('button');
     b.className = 'club-btn' + (c.id === selectedClub.id ? ' active' : '');
-    b.textContent = c.name;
+    b.textContent = `${c.name}/${c.loft}`;
     b.onclick = () => {
       document.querySelectorAll('.club-btn').forEach(btn => btn.classList.remove('active'));
       b.classList.add('active'); 
@@ -267,14 +269,19 @@ function createClubButtons() {
 function updatePhysics() {
   const speedMph = parseFloat(document.getElementById('clubSpeed').value);
   const smash = parseFloat(document.getElementById('smashFactor').value);
-  const launchDeg = parseFloat(document.getElementById('launchAngle').value);
+  const dynLoft = parseFloat(document.getElementById('dynLoft').value);
+  const attAngle = parseFloat(document.getElementById('attAngle').value);
+  
+  // Realism Logic: Launch Angle Calculation
+  const launchDeg = attAngle + (dynLoft - attAngle) * 0.8;
+  
   const backspin = parseFloat(document.getElementById('spinRate').value);
   const windMph = parseFloat(document.getElementById('windSpeed').value);
   const Cd = parseFloat(document.getElementById('dragCoeff').value);
   const Cl_base = parseFloat(document.getElementById('liftMult').value);
   const massGrams = parseFloat(document.getElementById('ballMass').value);
   const firmness = parseFloat(document.getElementById('turfFirmness').value);
-  const friction = parseFloat(document.getElementById('turfFriction').value);
+  const friction = 0.55; // Constant from original for logic integrity
 
   const rho = 1.15;  
   const g = 9.796;   
@@ -326,10 +333,10 @@ function updatePhysics() {
       y = 0;
       if (vy < -1.5) {
         vy = -vy * firmness;
-        vx = vx * friction; 
+        vx = vx * 0.55; 
       } else {
         vy = 0;
-        let rollDecel = g * (1 - friction); 
+        let rollDecel = g * (1 - 0.55); 
         vx -= rollDecel * dt;
         if (vx < 0) vx = 0;
       }
@@ -378,6 +385,7 @@ updatePhysics();
 </script>
 </body>
 </html>
+
 
 
 
