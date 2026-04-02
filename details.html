@@ -86,32 +86,35 @@
     <ul>
       <li><b>Turf Friction:</b> Multiplier for forward velocity.
         <ul>
-          <li><b>0.85+ (Concrete):</b> Rollout can exceed 100yd on low shots.</li>
-          <li><b>0.70 - 0.75 (Firm/Links):</b> Dry summer fairways.</li>
-          <li><b>0.60 - 0.65 (Average):</b> Standard recreational fairway.</li>
-          <li><b>0.45 - 0.55 (Soft/Wet):</b> Grass "grabs" the ball quickly.</li>
-        </ul>
-      </li>
-      <li><b>Turf Firmness:</b> Controls vertical bounce.
-        <ul>
-          <li><b>0.30 - 0.40 (Normal):</b> Standard bounce height.</li>
-          <li><b>0.15 - 0.25 (Soft):</b> Ball "thuds" with little kick.</li>
+          <li><b>0.70 - 0.75:</b> Firm/Links style (dry fairways).</li>
+          <li><b>0.45 - 0.55:</b> Soft/Wet style (grass grabs the ball).</li>
         </ul>
       </li>
     </ul>
 
-    <h3>2. The "Stinger" Effect</h3>
+    <h3>2. Dynamic Loft vs. Attack Angle</h3>
+    <p>In this Lab, these are <b>independent variables</b> to allow for manual shot-shaping simulations.</p>
+    <ul>
+      <li><b>The "Pinch":</b> While related, a golfer can change Dynamic Loft via shaft lean (Forward Press) or "flipping" the hands, regardless of the swing path (Attack Angle).</li>
+      <li><b>Spin Loft Calculation:</b> This is the "compression angle" that creates backspin.</li>
+    </ul>
+    <div class="math-block" style="text-align: center; font-weight: bold; font-size: 1rem;">
+      Spin Loft = Dynamic Loft - Attack Angle
+    </div>
+    <p><i>Example: A "Stinger" uses a low Dynamic Loft with a steep negative Attack Angle to keep the ball piercing the wind.</i></p>
+
+    <h3>3. The "Stinger" Effect</h3>
     <p>Apex dictates the <b>Descent Angle</b>.</p>
     <ul>
-      <li><b>Low Apex (&lt; 20yd):</b> Shallow descent. Ball skips and runs because momentum isn't converted into a vertical stop.</li>
+      <li><b>Low Apex (&lt; 20yd):</b> Shallow descent. Ball skips and runs.</li>
       <li><b>High Apex (&gt; 30yd):</b> Steep descent. Ball "drops from the sky" and stops fast.</li>
     </ul>
 
-    <h3>3. Atmospheric Calibration</h3>
+    <h3>4. Atmospheric Calibration</h3>
     <p>Hardcoded for <b>Asheville, NC (2,165')</b>:</p>
     <ul>
       <li><b>Air Density (ρ):</b> 1.15 kg/m³. Thinner air = less drag/lift.</li>
-      <li><b>Gravity (g):</b> 9.796 m/s². Slightly weaker than standard 9.81.</li>
+      <li><b>Gravity (g):</b> 9.796 m/s².</li>
     </ul>
   </div>
 
@@ -119,32 +122,18 @@
 
   <div class="content-box">
     <h3>1. Initial Launch Vector</h3>
-    <p>User inputs are converted into a starting velocity vector in meters per second (m/s):</p>
     <div class="math-block">
       V₀ = (ClubSpeed_mph × 0.44704) × SmashFactor<br>
-      Vx = V₀ × cos(LaunchAngle_rad)<br>
-      Vy = V₀ × sin(LaunchAngle_rad)
+      LaunchAngle = AttackAngle + (DynLoft - AttackAngle) × 0.8
     </div>
 
     <h3>2. Aero Flight (Drag & Lift)</h3>
-    <p>Recalculated every <b>0.015s</b> step. Accounts for wind speed relative to ball velocity.</p>
     <ul>
       <li><b>Drag Force:</b> Fd = 0.5 × ρ × V_air² × Cd × Area</li>
-      <li><b>Lift (Magnus):</b> Fl = 0.5 × ρ × V_air² × Cl × Area</li>
-      <li><b>Spin Scaling:</b> Cl is dynamically scaled by (Spin / 3000).</li>
+      <li><b>Lift (Magnus):</b> Fl = 0.5 × ρ × V_air² × (Cl_base × Spin/3000) × Area</li>
     </ul>
 
-    <h3>3. Integration Step</h3>
-    <p>Force accumulation and position updates:</p>
-    <div class="math-block">
-      Ax = (A_drag_x + A_lift_x)<br>
-      Ay = (-g + A_drag_y + A_lift_y)<br>
-      V_new = V_old + (A × dt)<br>
-      P_new = P_old + (V × dt)
-    </div>
-
-    <h3>4. Ground Game</h3>
-    <p>Triggered when y ≤ 0.</p>
+    <h3>3. Ground Game</h3>
     <ul>
       <li><b>The Bounce:</b> If Vy < -1.5, Vy = -Vy × Firmness and Vx = Vx × Friction.</li>
       <li><b>The Roll:</b> Horizontal deceleration = g × (1 - Friction).</li>
@@ -159,7 +148,7 @@
           <th>Club</th>
           <th>Speed</th>
           <th>Smash</th>
-          <th>Launch</th>
+          <th>Loft</th>
           <th>Spin</th>
         </tr>
       </thead>
@@ -181,5 +170,6 @@
 
 </body>
 </html>
+
 
 
