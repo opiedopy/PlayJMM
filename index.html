@@ -326,6 +326,7 @@ function updatePhysics() {
   let hasLanded = false;
 
   for (let i = 0; i < 2000; i++) {
+    backspin *= 0.9995; // Line 1: Decay
     if (i % 2 === 0) pts.push({ x: x, y: y });
     if (y > apex) apex = y;
     let Vair_x = vx - v_wind;
@@ -340,8 +341,10 @@ function updatePhysics() {
         let ad_y = -ad * (Vair_y / Vair);
         
         // Lift normalization at 2200rpm for a more efficient glide
-        let Cl = Cl_base * (backspin / 2200);
+        
+        let Cl = Math.min(Cl_base * (backspin / 2200), 0.38); // Line 2: Clamp
         let Fl = 0.5 * rho * Vair * Vair * Cl * area;
+
         let al = Fl / BALL_MASS_KG;
         let al_x = -al * (Vair_y / Vair); 
         let al_y = al * (Vair_x / Vair);
