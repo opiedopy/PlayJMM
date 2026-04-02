@@ -45,7 +45,6 @@
     margin-bottom: 14px;
     position: relative; z-index: 10;
   }
-  /* Refinement 5: Reduced horizontal padding */
   .hud-stat { background: rgba(0, 0, 0, 0.6); border: 1px solid var(--brass); border-radius: 4px; padding: 10px 1px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
   .hud-label { font-size: 0.5rem; color: var(--brass); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
   .hud-val { font-size: 1.1rem; font-weight: 600; color: #fff; }
@@ -65,7 +64,6 @@
   }
 
   .club-row { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 12px; }
-  /* Refinement 3: Reduced font-size and letter-spacing for 5x2 grid */
   .club-btn { padding: 6px 2px; background: #1b1b1b; border: 1px solid var(--brass); border-radius: 4px; color: var(--brass); font-size: 0.5rem; font-weight: 600; letter-spacing: 0px; cursor: pointer; flex: 1 0 18%; min-width: 50px; text-align: center; transition: all 0.2s; }
   .club-btn.active { background: var(--brass); color: var(--wood); box-shadow: 0 0 8px var(--brass); }
 
@@ -82,7 +80,6 @@
     border: 1px solid rgba(212, 175, 55, 0.15);
   }
 
-  /* Refinement 4: Justify space-between for scanability */
   .slider-label {
     display: flex;
     justify-content: space-between;
@@ -165,16 +162,24 @@
         <input type="range" id="smashFactor" min="1.0" max="1.52" step="0.01" value="1.48">
       </div>
       <div class="slider-box">
-        <div class="slider-label"><span>Dyn Loft</span> <span class="slider-val" id="dynLoftVal">11.0°</span></div>
-        <input type="range" id="dynLoft" min="5" max="60" step="0.5" value="11">
+        <div class="slider-label"><span>Static Loft</span> <span class="slider-val" id="staticLoftVal">10.5°</span></div>
+        <input type="range" id="staticLoft" min="8" max="60" step="0.5" value="10.5">
       </div>
       <div class="slider-box">
-        <div class="slider-label"><span>Attack Ang</span> <span class="slider-val" id="attAngleVal">0.0°</span></div>
-        <input type="range" id="attAngle" min="-10" max="10" step="0.5" value="0">
+        <div class="slider-label"><span>Shaft Lean</span> <span class="slider-val" id="shaftLeanVal">-3.0°</span></div>
+        <input type="range" id="shaftLean" min="-8" max="2" step="0.1" value="-3">
+      </div>
+      <div class="slider-box">
+        <div class="slider-label"><span>AoA</span> <span class="slider-val" id="aoaVal">-2.0°</span></div>
+        <input type="range" id="aoa" min="-10" max="5" step="0.1" value="-2">
+      </div>
+      <div class="slider-box">
+        <div class="slider-label"><span>Dyn Loft</span> <span class="slider-val" id="dynLoftVal">7.5°</span></div>
+        <input type="range" id="dynLoft" min="5" max="60" step="0.5" value="7.5" disabled style="opacity:0.5">
       </div>
       <div class="slider-box">
         <div class="slider-label">
-          <span>Backspin <span style="color:#aaa; font-size:0.5rem;">(SL: <span id="spinLoftVal">0.0</span>°)</span></span>
+          <span>Backspin <span style="color:#aaa; font-size:0.5rem;">(SL: <span id="spinLoftVal">9.5</span>°)</span></span>
           <span class="slider-val" id="spinRateVal">2500</span>
         </div>
         <input type="range" id="spinRate" min="500" max="12000" step="100" value="2500">
@@ -210,7 +215,7 @@
 </div>
 
 <script>
-// Refinement 6: Updated to 10 clubs
+// Updated clubs with static loft matching new system
 const clubs = [
   {name: "DRIVER", id: "dr", speed: 100, smash: 1.48, loft: 10.5, spin: 2500},
   {name: "3-WOOD", id: "3w", speed: 95,  smash: 1.45, loft: 15.0, spin: 3200},
@@ -229,11 +234,11 @@ let currentPathData = "";
 
 const BALL_MASS_KG = 0.04593;
 
-const sliderIds = ['clubSpeed', 'smashFactor', 'dynLoft', 'attAngle', 'spinRate', 'windSpeed', 'dragCoeff', 'liftMult', 'turfFirmness', 'turfFriction'];
+const sliderIds = ['clubSpeed', 'smashFactor', 'staticLoft', 'shaftLean', 'aoa', 'spinRate', 'windSpeed', 'dragCoeff', 'liftMult', 'turfFirmness', 'turfFriction'];
 sliderIds.forEach(id => {
   document.getElementById(id).addEventListener('input', e => {
     let val = parseFloat(e.target.value);
-    if (id === 'dynLoft' || id === 'attAngle') {
+    if (id === 'staticLoft' || id === 'shaftLean' || id === 'aoa') {
       document.getElementById(id + 'Val').textContent = val.toFixed(1) + "°";
     } else {
       document.getElementById(id + 'Val').textContent = val;
@@ -242,9 +247,26 @@ sliderIds.forEach(id => {
     if (id === 'windSpeed') {
       document.getElementById('windDir').textContent = val > 0 ? '→' : val < 0 ? '←' : '—';
     }
+    
+    // Auto-update derived values
+    updateDerivedValues();
     updatePhysics();
   });
 });
+
+function updateDerivedValues() {
+  const staticLoft = parseFloat(document.getElementById('staticLoft').value);
+  const shaftLean = parseFloat(document.getElementById('shaftLean').value);
+  const aoa = parseFloat(document.getElementById('aoa').value);
+  const faceAdj = 0; // Fixed
+  
+  const dynamicLoft = staticLoft + shaftLean + faceAdj;
+  const spinLoft = dynamicLoft - aoa;
+  
+  document.getElementById('dynLoft').value = dynamicLoft;
+  document.getElementById('dynLoftVal').textContent = dynamicLoft.toFixed(1) + "°";
+  document.getElementById('spinLoftVal').textContent = spinLoft.toFixed(1);
+}
 
 function applyClubPreset(c) {
   selectedClub = c;
@@ -252,23 +274,24 @@ function applyClubPreset(c) {
   document.getElementById('clubSpeedVal').textContent = c.speed;
   document.getElementById('smashFactor').value = c.smash;
   document.getElementById('smashFactorVal').textContent = c.smash.toFixed(2);
-  document.getElementById('dynLoft').value = c.loft;
-  // Refinement 1: .toFixed(1)
-  document.getElementById('dynLoftVal').textContent = c.loft.toFixed(1) + "°";
-  document.getElementById('attAngle').value = 0;
-  document.getElementById('attAngleVal').textContent = "0.0°";
+  document.getElementById('staticLoft').value = c.loft;
+  document.getElementById('staticLoftVal').textContent = c.loft.toFixed(1) + "°";
+  document.getElementById('shaftLean').value = -3;
+  document.getElementById('shaftLeanVal').textContent = "-3.0°";
+  document.getElementById('aoa').value = -2;
+  document.getElementById('aoaVal').textContent = "-2.0°";
   document.getElementById('spinRate').value = c.spin;
   document.getElementById('spinRateVal').textContent = c.spin;
+  updateDerivedValues();
   updatePhysics();
 }
 
 function createClubButtons() {
   const container = document.getElementById('clubButtons');
-  container.innerHTML = ''; // Clear existing
+  container.innerHTML = '';
   clubs.forEach(c => {
     const b = document.createElement('button');
     b.className = 'club-btn' + (c.id === selectedClub.id ? ' active' : '');
-    // Refinement 1: logic toFixed(1)
     b.textContent = `${c.name}/${c.loft.toFixed(1)}`;
     b.onclick = () => {
       document.querySelectorAll('.club-btn').forEach(btn => btn.classList.remove('active'));
@@ -283,12 +306,9 @@ function updatePhysics() {
   const speedMph = parseFloat(document.getElementById('clubSpeed').value);
   const smash = parseFloat(document.getElementById('smashFactor').value);
   const dynLoft = parseFloat(document.getElementById('dynLoft').value);
-  const attAngle = parseFloat(document.getElementById('attAngle').value);
+  const attAngle = parseFloat(document.getElementById('aoa').value);
   
-  const spinLoft = dynLoft - attAngle;
-  document.getElementById('spinLoftVal').textContent = spinLoft.toFixed(1);
-
-  const launchDeg = attAngle + (dynLoft - attAngle) * 0.8;
+  const launchDeg = 0.75 * dynLoft + 0.15 * attAngle;
   document.getElementById('valLaunch').textContent = launchDeg.toFixed(1);
 
   const backspin = parseFloat(document.getElementById('spinRate').value);
@@ -399,10 +419,12 @@ function resetLab() {
 }
 
 createClubButtons();
+updateDerivedValues();
 updatePhysics(); 
 </script>
 </body>
 </html>
+
 
 
 
