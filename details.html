@@ -52,7 +52,6 @@
   li { margin-bottom: 8px; }
   b { color: var(--brass); }
 
-  /* Data Table Styling */
   table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 0.8rem; background: rgba(0,0,0,0.4); }
   th, td { border: 1px solid var(--brass); padding: 8px; text-align: center; }
   th { background: var(--wood); color: var(--brass); text-transform: uppercase; }
@@ -82,12 +81,12 @@
   
   <div class="content-box">
     <h3>1. Turf Interaction</h3>
-    <p>The relationship between landing and travel depends on <b>Firmness</b> and <b>Friction</b>.</p>
+    <p>Landing performance depends on <b>Firmness</b> and <b>Friction</b>.</p>
     <ul>
-      <li><b>Turf Friction:</b> Multiplier for forward velocity.
+      <li><b>Turf Friction (Slider 10):</b> Multiplier for forward velocity.
         <ul>
-          <li><b>0.70 - 0.75:</b> Firm/Links style (dry fairways).</li>
-          <li><b>0.45 - 0.55:</b> Soft/Wet style (grass grabs the ball).</li>
+          <li><b>0.70 - 0.75:</b> Firm/Links style.</li>
+          <li><b>0.45 - 0.55:</b> Soft/Wet fairways.</li>
         </ul>
       </li>
     </ul>
@@ -95,25 +94,16 @@
     <h3>2. Dynamic Loft vs. Attack Angle</h3>
     <p>In this Lab, these are <b>independent variables</b> to allow for manual shot-shaping simulations.</p>
     <ul>
-      <li><b>The "Pinch":</b> While related, a golfer can change Dynamic Loft via shaft lean (Forward Press) or "flipping" the hands, regardless of the swing path (Attack Angle).</li>
-      <li><b>Spin Loft Calculation:</b> This is the "compression angle" that creates backspin.</li>
+      <li><b>The "Pinch":</b> A golfer can change Dynamic Loft via shaft lean (Forward Press) regardless of the swing path (Attack Angle).</li>
     </ul>
     <div class="math-block" style="text-align: center; font-weight: bold; font-size: 1rem;">
       Spin Loft = Dynamic Loft - Attack Angle
     </div>
-    <p><i>Example: A "Stinger" uses a low Dynamic Loft with a steep negative Attack Angle to keep the ball piercing the wind.</i></p>
 
-    <h3>3. The "Stinger" Effect</h3>
-    <p>Apex dictates the <b>Descent Angle</b>.</p>
-    <ul>
-      <li><b>Low Apex (&lt; 20yd):</b> Shallow descent. Ball skips and runs.</li>
-      <li><b>High Apex (&gt; 30yd):</b> Steep descent. Ball "drops from the sky" and stops fast.</li>
-    </ul>
-
-    <h3>4. Atmospheric Calibration</h3>
+    <h3>3. Atmospheric Calibration</h3>
     <p>Hardcoded for <b>Asheville, NC (2,165')</b>:</p>
     <ul>
-      <li><b>Air Density (ρ):</b> 1.15 kg/m³. Thinner air = less drag/lift.</li>
+      <li><b>Air Density (ρ):</b> 1.15 kg/m³. Thinner air reduces total drag.</li>
       <li><b>Gravity (g):</b> 9.796 m/s².</li>
     </ul>
   </div>
@@ -121,22 +111,23 @@
   <h2>Physics Engine Architecture</h2>
 
   <div class="content-box">
-    <h3>1. Initial Launch Vector</h3>
+    <h3>1. Standardized Ball Constants</h3>
+    <p>To ensure consistent "Pro-Level" feedback, the ball properties are hardcoded to USGA and industry standards:</p>
+    <ul>
+      <li><b>Mass:</b> Fixed at <b>45.93g</b> (The maximum allowable weight). Removing this slider prevents unrealistic "featherweight" or "cannonball" simulations.</li>
+      <li><b>Aero Area:</b> Fixed at <b>0.001432 m²</b> (Standard 1.68" diameter).</li>
+      <li><b>Base Drag (Cd):</b> Default <b>0.24</b>. This accounts for the dimple-induced turbulence that allows a golf ball to travel significantly further than a smooth sphere.</li>
+    </ul>
+
+    <h3>2. Initial Launch Vector</h3>
     <div class="math-block">
       V₀ = (ClubSpeed_mph × 0.44704) × SmashFactor<br>
       LaunchAngle = AttackAngle + (DynLoft - AttackAngle) × 0.8
     </div>
 
-    <h3>2. Aero Flight (Drag & Lift)</h3>
+    <h3>3. Aero Flight (Drag & Lift)</h3>
     <ul>
-      <li><b>Drag Force:</b> Fd = 0.5 × ρ × V_air² × Cd × Area</li>
-      <li><b>Lift (Magnus):</b> Fl = 0.5 × ρ × V_air² × (Cl_base × Spin/3000) × Area</li>
-    </ul>
-
-    <h3>3. Ground Game</h3>
-    <ul>
-      <li><b>The Bounce:</b> If Vy < -1.5, Vy = -Vy × Firmness and Vx = Vx × Friction.</li>
-      <li><b>The Roll:</b> Horizontal deceleration = g × (1 - Friction).</li>
+      <li><b>Lift (Magnus Effect):</b> Calculated using <b>Cl_base</b> scaled by <b>Spin/3000</b>. This creates the upward force that keeps the ball airborne.</li>
     </ul>
   </div>
 
@@ -170,6 +161,7 @@
 
 </body>
 </html>
+
 
 
 
