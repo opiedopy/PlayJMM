@@ -171,7 +171,7 @@
       </div>
       <div class="slider-box">
         <div class="slider-label">
-          <span>Spin <span style="color:#aaa; font-size:0.5rem;">(SL: <span id="spinLoftVal">0</span>°)</span></span>
+          <span>Backspin <span style="color:#aaa; font-size:0.5rem;">(SL: <span id="spinLoftVal">0</span>°)</span></span>
           <span class="slider-val" id="spinRateVal">2500</span>
         </div>
         <input type="range" id="spinRate" min="500" max="12000" step="100" value="2500">
@@ -222,7 +222,7 @@ const clubs = [
 let selectedClub = clubs[0];
 let currentPathData = "";
 
-// Hard-coded Ball Mass (45.93g USGA Limit)
+// Hard-coded Ball Mass (45.93g USGA Standard)
 const BALL_MASS_KG = 0.04593;
 
 const sliderIds = ['clubSpeed', 'smashFactor', 'dynLoft', 'attAngle', 'spinRate', 'windSpeed', 'dragCoeff', 'liftMult', 'turfFirmness', 'turfFriction'];
@@ -278,7 +278,7 @@ function updatePhysics() {
   const dynLoft = parseFloat(document.getElementById('dynLoft').value);
   const attAngle = parseFloat(document.getElementById('attAngle').value);
   
-  // Real-time Spin Loft display
+  // Real-time Spin Loft calculation
   const spinLoft = dynLoft - attAngle;
   document.getElementById('spinLoftVal').textContent = spinLoft.toFixed(1);
 
@@ -395,6 +395,7 @@ updatePhysics();
 </script>
 </body>
 </html>
+
 
 
 
