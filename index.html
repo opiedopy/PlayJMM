@@ -6,7 +6,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>JMMLab22 - Ball & Aero</title>
+<title>JMMLab23</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@400;600&display=swap');
 
@@ -102,13 +102,13 @@
   }
   input[type=range]::-webkit-slider-thumb { 
     -webkit-appearance: none; 
-    width: 28px;  
-    height: 28px; 
+    width: 30px;  
+    height: 30px; 
     background: var(--brass); 
     border-radius: 50%; 
     border: 2px solid var(--wood); 
     cursor: pointer; 
-    margin-top: -8px; 
+    margin-top: -9px; 
     box-shadow: 0 0 8px rgba(0,0,0,0.5);
   }
 
@@ -116,13 +116,14 @@
   .btn { flex: 1; padding: 12px; border: none; border-radius: 6px; font-family: 'Montserrat', sans-serif; font-size: 0.85rem; cursor: pointer; text-transform: uppercase; font-weight: 700; letter-spacing: 1px; transition: transform 0.1s; }
   .btn-compare { background: var(--grass); color: white; border: 1px solid #4ade80; }
   .btn-reset { background: #4a1e1e; color: white; border: 1px solid #f87171; }
+  .btn-details { background: var(--brass); color: var(--wood); border: 1px solid var(--parchment); }
 </style>
 </head>
 <body>
 
 <div style="position: relative; z-index: 10;">
-  <h2>⛳ JMM Club Lab 22</h2>
-  <div class="subtitle">Aero Calibration • AVL Base (2,165')</div>
+  <h2>⛳ JMM Club Lab 23</h2>
+  <div class="subtitle">Live Aero Physics • Asheville NC (2,165')</div>
 
   <div class="lab-hud">
     <div class="hud-stat"><div class="hud-label">Carry</div><div class="hud-val"><span id="valCarry">0</span><span class="hud-unit">yd</span></div></div>
@@ -145,6 +146,7 @@
     
     <g id="ghostLayer"></g>
     <path id="livePath" stroke="var(--brass)" fill="none" stroke-width="2.5" stroke-dasharray="1,1" />
+    <circle id="ball" cx="11" cy="185" r="4" fill="white"/>
   </svg>
 
   <div class="controls">
@@ -164,195 +166,278 @@
         <input type="range" id="staticLoft" min="8" max="60" step="0.5" value="10.5">
       </div>
       <div class="slider-box">
+        <div class="slider-label"><span>Shaft Lean</span> <span class="slider-val" id="shaftLeanVal">0.0°</span></div>
+        <input type="range" id="shaftLean" min="-10" max="10" step="0.1" value="0">
+      </div>
+      <div class="slider-box">
         <div class="slider-label"><span>AoA</span> <span class="slider-val" id="aoaVal">2.0°</span></div>
         <input type="range" id="aoa" min="-10" max="8" step="0.1" value="2">
       </div>
-      
-      <div class="slider-box" style="grid-column: span 2;">
-        <div class="slider-label"><span>Ball Model</span> <span class="slider-val" id="ballTypeVal">Premium Tour</span></div>
-        <input type="range" id="ballType" min="0" max="4" step="1" value="0">
-      </div>
-
-      <div class="slider-box" style="grid-column: span 2;">
-        <div class="slider-label"><span>Environment (Alt/Temp)</span> <span class="slider-val" id="envVal">Standard AVL</span></div>
-        <input type="range" id="envLevel" min="-2000" max="5000" step="500" value="0">
-      </div>
-
       <div class="slider-box">
-        <div class="slider-label"><span>Backspin</span> <span class="slider-val" id="spinRateVal">2400</span></div>
+        <div class="slider-label"><span>Dyn Loft</span> <span class="slider-val" id="dynLoftVal">10.5°</span></div>
+        <input type="range" id="dynLoft" min="5" max="60" step="0.5" value="10.5" disabled style="opacity:0.5">
+      </div>
+      <div class="slider-box">
+        <div class="slider-label">
+          <span>Backspin <span style="color:#aaa; font-size:0.5rem;">(SL: <span id="spinLoftVal">8.5</span>°)</span></span>
+          <span class="slider-val" id="spinRateVal">2400</span>
+        </div>
         <input type="range" id="spinRate" min="500" max="12000" step="100" value="2400">
       </div>
       <div class="slider-box">
-        <div class="slider-label"><span>Wind</span> <span class="slider-val" id="windSpeedVal">0</span></div>
+        <div class="slider-label"><span>Wind <span id="windDir">—</span></span> <span class="slider-val" id="windSpeedVal">0</span></div>
         <input type="range" id="windSpeed" min="-40" max="40" value="0">
+      </div>
+
+      <div class="slider-box">
+        <div class="slider-label"><span>Ball Model</span> <span class="slider-val" id="ballTypeVal">Tour</span></div>
+        <input type="range" id="ballType" min="1" max="5" step="1" value="1">
+      </div>
+      <div class="slider-box">
+        <div class="slider-label"><span>Environment</span> <span class="slider-val" id="envTypeVal">Standard</span></div>
+        <input type="range" id="envType" min="1" max="5" step="1" value="2">
+      </div>
+      <div class="slider-box">
+        <div class="slider-label"><span>Turf Firm</span> <span class="slider-val" id="turfFirmnessVal">0.40</span></div>
+        <input type="range" id="turfFirmness" min="0.10" max="0.90" step="0.05" value="0.40">
+      </div>
+      <div class="slider-box">
+        <div class="slider-label"><span>Turf Frict</span> <span class="slider-val" id="turfFrictionVal">0.55</span></div>
+        <input type="range" id="turfFriction" min="0.10" max="0.99" step="0.01" value="0.55">
       </div>
     </div>
   </div>
 
   <div class="btn-row">
-    <button class="btn btn-compare" onclick="freezeArc()">Freeze</button>
+    <button class="btn btn-compare" onclick="freezeArc()">Freeze Arc</button>
     <button class="btn btn-reset" onclick="resetLab()">Clear</button>
+    <button class="btn btn-details" onclick="window.location.href='details.html'">Details</button>
   </div>
 </div>
 
 <script>
-const ASHEVILLE_ELEV = 2165;
-const BALL_MASS_KG = 0.04593;
-
-const ballModels = [
-  { name: "Premium Tour", cd: 0.23, cl: 0.16 },
-  { name: "Distance/Hard", cd: 0.21, cl: 0.13 },
-  { name: "Soft/Spin", cd: 0.25, cl: 0.19 },
-  { name: "Range Ball", cd: 0.28, cl: 0.14 },
-  { name: "Beat Up/Scuffed", cd: 0.32, cl: 0.12 }
+const clubs = [
+  {name: "DRIVER", id: "dr", speed: 110, smash: 1.48, loft: 10.5, lean: -2.5, spin: 2400, aoa: 2},
+  {name: "3-WOOD", id: "3w", speed: 104, smash: 1.45, loft: 15.0, lean: -1.0, spin: 3200, aoa: 0},
+  {name: "5-WOOD", id: "5w", speed: 100, smash: 1.42, loft: 18.5, lean: 0.0, spin: 3500, aoa: -1},
+  {name: "4-IRON", id: "4i", speed: 94,  smash: 1.40, loft: 22.0, lean: 2.0, spin: 4200, aoa: -2},
+  {name: "5-IRON", id: "5i", speed: 91,  smash: 1.37, loft: 25.0, lean: 2.5, spin: 4800, aoa: -3},
+  {name: "6-IRON", id: "6i", speed: 88,  smash: 1.34, loft: 28.0, lean: 3.0, spin: 5600, aoa: -3},
+  {name: "7-IRON", id: "7i", speed: 85,  smash: 1.31, loft: 32.0, lean: 3.5, spin: 6500, aoa: -4},
+  {name: "8-IRON", id: "8i", speed: 81,  smash: 1.28, loft: 36.0, lean: 4.0, spin: 7500, aoa: -4},
+  {name: "9-IRON", id: "9i", speed: 77,  smash: 1.25, loft: 40.0, lean: 4.5, spin: 8500, aoa: -5},
+  {name: "PW",     id: "pw", speed: 73,  smash: 1.20, loft: 44.0, lean: 5.0, spin: 9500, aoa: -5}
 ];
 
-const clubs = [
-  {name: "DR", loft: 10.5, speed: 110, smash: 1.48, spin: 2400, aoa: 2},
-  {name: "3W", loft: 15.0, speed: 104, smash: 1.45, spin: 3200, aoa: 0},
-  {name: "5I", loft: 25.0, speed: 91,  smash: 1.37, spin: 4800, aoa: -3},
-  {name: "7I", loft: 32.0, speed: 85,  smash: 1.31, spin: 6500, aoa: -4},
-  {name: "PW", loft: 44.0, speed: 73,  smash: 1.20, spin: 9500, aoa: -5}
+// DATA PROFILES
+const ballProfiles = [
+  { name: "Tour", cd: 0.23, cl: 0.16 },
+  { name: "Distance", cd: 0.21, cl: 0.13 },
+  { name: "Soft", cd: 0.25, cl: 0.18 },
+  { name: "Range", cd: 0.28, cl: 0.14 },
+  { name: "Scuffed", cd: 0.32, cl: 0.11 }
+];
+
+const envProfiles = [
+  { name: "Cold/Dense", rho: 1.22 },
+  { name: "Standard", rho: 1.14 }, // AVL Base
+  { name: "Warm", rho: 1.10 },
+  { name: "Hot/Thin", rho: 1.06 },
+  { name: "High Alt", rho: 0.98 }
 ];
 
 let selectedClub = clubs[0];
 let currentPathData = "";
+const BALL_MASS_KG = 0.04593;
 
-function setupSliders() {
-  const ids = ['clubSpeed', 'smashFactor', 'staticLoft', 'aoa', 'spinRate', 'windSpeed', 'ballType', 'envLevel'];
-  ids.forEach(id => {
-    document.getElementById(id).addEventListener('input', () => {
-      updateLabels();
-      updatePhysics();
-    });
+const sliderIds = ['clubSpeed', 'smashFactor', 'staticLoft', 'shaftLean', 'aoa', 'spinRate', 'windSpeed', 'ballType', 'envType', 'turfFirmness', 'turfFriction'];
+
+sliderIds.forEach(id => {
+  document.getElementById(id).addEventListener('input', e => {
+    let val = parseFloat(e.target.value);
+    const valEl = document.getElementById(id + 'Val');
+    
+    if (id === 'shaftLean') {
+      valEl.textContent = (val > 0 ? "+" : "") + val.toFixed(1) + "°";
+    } else if (id === 'staticLoft' || id === 'aoa') {
+      valEl.textContent = val.toFixed(1) + "°";
+    } else if (id === 'ballType') {
+      valEl.textContent = ballProfiles[val - 1].name;
+    } else if (id === 'envType') {
+      valEl.textContent = envProfiles[val - 1].name;
+    } else {
+      valEl.textContent = val;
+    }
+    
+    if (id === 'windSpeed') {
+      document.getElementById('windDir').textContent = val > 0 ? '→' : val < 0 ? '←' : '—';
+    }
+    updateDerivedValues();
+    updatePhysics();
   });
+});
+
+function updateDerivedValues() {
+  const staticLoft = parseFloat(document.getElementById('staticLoft').value);
+  const shaftLean = parseFloat(document.getElementById('shaftLean').value);
+  const aoa = parseFloat(document.getElementById('aoa').value);
+  
+  const dynamicLoft = staticLoft - shaftLean;
+  const spinLoft = dynamicLoft - aoa;
+  
+  document.getElementById('dynLoft').value = dynamicLoft;
+  document.getElementById('dynLoftVal').textContent = dynamicLoft.toFixed(1) + "°";
+  document.getElementById('spinLoftVal').textContent = spinLoft.toFixed(1);
 }
 
-function updateLabels() {
-  document.getElementById('clubSpeedVal').textContent = document.getElementById('clubSpeed').value;
-  document.getElementById('smashFactorVal').textContent = document.getElementById('smashFactor').value;
-  document.getElementById('staticLoftVal').textContent = document.getElementById('staticLoft').value + "°";
-  document.getElementById('aoaVal').textContent = document.getElementById('aoa').value + "°";
-  document.getElementById('spinRateVal').textContent = document.getElementById('spinRate').value;
-  document.getElementById('windSpeedVal').textContent = document.getElementById('windSpeed').value;
+function applyClubPreset(c) {
+  selectedClub = c;
+  document.getElementById('clubSpeed').value = c.speed;
+  document.getElementById('clubSpeedVal').textContent = c.speed;
+  document.getElementById('smashFactor').value = c.smash;
+  document.getElementById('smashFactorVal').textContent = c.smash.toFixed(2);
+  document.getElementById('staticLoft').value = c.loft;
+  document.getElementById('staticLoftVal').textContent = c.loft.toFixed(1) + "°";
+  document.getElementById('shaftLean').value = c.lean;
+  document.getElementById('shaftLeanVal').textContent = (c.lean > 0 ? "+" : "") + c.lean.toFixed(1) + "°";
+  document.getElementById('aoa').value = c.aoa;
+  document.getElementById('aoaVal').textContent = c.aoa.toFixed(1) + "°";
+  document.getElementById('spinRate').value = c.spin;
+  document.getElementById('spinRateVal').textContent = c.spin;
   
-  const bIdx = document.getElementById('ballType').value;
-  document.getElementById('ballTypeVal').textContent = ballModels[bIdx].name;
+  updateDerivedValues();
+  updatePhysics();
+}
 
-  const envOffset = parseInt(document.getElementById('envLevel').value);
-  const totalEffAlt = ASHEVILLE_ELEV + envOffset;
-  document.getElementById('envVal').textContent = envOffset === 0 ? "Standard AVL" : (totalEffAlt + " ft");
+function createClubButtons() {
+  const container = document.getElementById('clubButtons');
+  container.innerHTML = '';
+  clubs.forEach(c => {
+    const b = document.createElement('button');
+    b.className = 'club-btn' + (c.id === selectedClub.id ? ' active' : '');
+    b.textContent = `${c.name}/${c.loft.toFixed(1)}`;
+    b.onclick = () => {
+      document.querySelectorAll('.club-btn').forEach(btn => btn.classList.remove('active'));
+      b.classList.add('active'); 
+      applyClubPreset(c);
+    };
+    container.appendChild(b);
+  });
 }
 
 function updatePhysics() {
   const speedMph = parseFloat(document.getElementById('clubSpeed').value);
   const smash = parseFloat(document.getElementById('smashFactor').value);
-  const loft = parseFloat(document.getElementById('staticLoft').value);
-  const aoa = parseFloat(document.getElementById('aoa').value);
-  const spin = parseFloat(document.getElementById('spinRate').value);
-  const windMph = parseFloat(document.getElementById('windSpeed').value);
+  const dynLoft = parseFloat(document.getElementById('dynLoft').value);
+  const attAngle = parseFloat(document.getElementById('aoa').value);
   
-  const bIdx = document.getElementById('ballType').value;
-  const Cd = ballModels[bIdx].cd;
-  const Cl_base = ballModels[bIdx].cl;
-
-  // Air Density Calculation based on effective altitude
-  const effAlt = ASHEVILLE_ELEV + parseInt(document.getElementById('envLevel').value);
-  const rho = 1.225 * Math.exp(-0.000118 * effAlt * 0.3048); // Simple ISA model
-
-  const launchDeg = (loft * 0.85) + (aoa * 0.1);
+  const launchDeg = (dynLoft * 0.85) + (attAngle * 0.1);
   document.getElementById('valLaunch').textContent = launchDeg.toFixed(1);
 
-  const g = 9.806;
-  const area = 0.001432;
-  const v0 = speedMph * 0.44704 * smash;
-  const rad = launchDeg * Math.PI / 180;
+  const backspin = parseFloat(document.getElementById('spinRate').value);
+  const windMph = parseFloat(document.getElementById('windSpeed').value);
   
+  // PULL FROM PROFILES
+  const ballIdx = parseInt(document.getElementById('ballType').value) - 1;
+  const envIdx = parseInt(document.getElementById('envType').value) - 1;
+  const Cd = ballProfiles[ballIdx].cd;
+  const Cl_base = ballProfiles[ballIdx].cl;
+  const rho = envProfiles[envIdx].rho;
+
+  const firmness = parseFloat(document.getElementById('turfFirmness').value);
+  const friction = parseFloat(document.getElementById('turfFriction').value);
+
+  const g = 9.796;   
+  const area = 0.001432; 
+
+  const v0 = speedMph * 0.44704 * smash; 
+  const rad = launchDeg * Math.PI / 180;
   let vx = v0 * Math.cos(rad);
   let vy = v0 * Math.sin(rad);
-  const v_wind = windMph * 0.44704;
+  const v_wind = windMph * 0.44704; 
 
-  let x = 0, y = 0, apex = 0, carry = 0;
-  const dt = 0.015;
+  let x = 0, y = 0, apex = 0;
+  const dt = 0.015; 
   const pts = [];
-  let landed = false;
+  let carry = 0;
+  let hasLanded = false;
 
   for (let i = 0; i < 2000; i++) {
-    pts.push({x, y});
+    if (i % 2 === 0) pts.push({ x: x, y: y });
     if (y > apex) apex = y;
-
     let Vair_x = vx - v_wind;
     let Vair_y = vy;
-    let Vair = Math.sqrt(Vair_x**2 + Vair_y**2);
-
-    // Drag & Lift Forces
-    let Fd = 0.5 * rho * Vair**2 * Cd * area;
-    let Cl = Cl_base * (spin / 2500); // Normalized lift
-    let Fl = 0.5 * rho * Vair**2 * Cl * area;
-
-    let ax = (-Fd * (Vair_x / Vair) - Fl * (Vair_y / Vair)) / BALL_MASS_KG;
-    let ay = (-g - Fd * (Vair_y / Vair) + Fl * (Vair_x / Vair)) / BALL_MASS_KG;
-
-    vx += ax * dt;
-    vy += ay * dt;
+    let Vair = Math.sqrt(Vair_x * Vair_x + Vair_y * Vair_y);
+    
+    if (y > 0 || !hasLanded) {
+      if (Vair > 0) {
+        let Fd = 0.5 * rho * Vair * Vair * Cd * area;
+        let ad = Fd / BALL_MASS_KG;
+        let ad_x = -ad * (Vair_x / Vair);
+        let ad_y = -ad * (Vair_y / Vair);
+        
+        let Cl = Cl_base * (backspin / 2200);
+        let Fl = 0.5 * rho * Vair * Vair * Cl * area;
+        let al = Fl / BALL_MASS_KG;
+        let al_x = -al * (Vair_y / Vair); 
+        let al_y = al * (Vair_x / Vair);
+        
+        vx += (ad_x + al_x) * dt;
+        vy += (-g + ad_y + al_y) * dt;
+      } else {
+        vy -= g * dt;
+      }
+    }
+    
     x += vx * dt;
     y += vy * dt;
-
-    if (y <= 0 && !landed) {
-      carry = x * 1.09361;
-      landed = true;
-      break; 
+    
+    if (y <= 0) {
+      if (!hasLanded) {
+        carry = x * 1.09361;
+        hasLanded = true;
+      }
+      y = 0;
+      if (vy < -1.5) {
+        vy = -vy * firmness;
+        vx = vx * friction; 
+      } else {
+        vy = 0;
+        let rollDecel = g * (1 - friction); 
+        vx -= rollDecel * dt;
+        if (vx < 0) vx = 0;
+      }
+      if (vx === 0 && vy === 0) break;
     }
   }
-
-  drawPath(pts, carry, apex * 1.09361);
+  pts.push({ x: x, y: y });
+  drawPath(pts, carry, x * 1.09361, apex * 1.09361);
 }
 
-function drawPath(pts, carry, apex) {
-  const scaleX = 0.95;
+function drawPath(pts, carry, total, apex) {
+  const scaleX = 0.95; 
   const scaleY = 2.0;
+  const startX = 11;
+  const startY = 185;
   const d = pts.map((p, i) => {
-    const sx = 11 + (p.x * 1.09361 * scaleX);
-    const sy = 185 - (p.y * 1.09361 * scaleY);
+    const sx = startX + ((p.x * 1.09361) * scaleX);
+    const sy = startY - ((p.y * 1.09361) * scaleY);
     return `${i === 0 ? 'M' : 'L'}${sx},${sy}`;
   }).join(' ');
-  
   currentPathData = d;
   document.getElementById('livePath').setAttribute('d', d);
   document.getElementById('valCarry').textContent = Math.round(carry);
-  document.getElementById('valTotal').textContent = Math.round(carry * 1.08); // Simulating average roll
+  document.getElementById('valTotal').textContent = Math.round(total);
   document.getElementById('valApex').textContent = Math.round(apex);
-}
-
-function createClubButtons() {
-  const container = document.getElementById('clubButtons');
-  clubs.forEach(c => {
-    const b = document.createElement('button');
-    b.className = 'club-btn';
-    b.textContent = c.name;
-    b.onclick = () => {
-      document.querySelectorAll('.club-btn').forEach(btn => btn.classList.remove('active'));
-      b.classList.add('active');
-      document.getElementById('staticLoft').value = c.loft;
-      document.getElementById('clubSpeed').value = c.speed;
-      document.getElementById('smashFactor').value = c.smash;
-      document.getElementById('spinRate').value = c.spin;
-      document.getElementById('aoa').value = c.aoa;
-      updateLabels();
-      updatePhysics();
-    };
-    container.appendChild(b);
-  });
-  container.firstChild.click();
 }
 
 function freezeArc() {
   const gLayer = document.getElementById('ghostLayer');
   const ghost = document.createElementNS("http://www.w3.org/2000/svg", "path");
   ghost.setAttribute('d', currentPathData);
-  ghost.setAttribute('stroke', 'rgba(212, 175, 55, 0.3)');
+  ghost.setAttribute('stroke', 'rgba(212, 175, 55, 0.25)');
   ghost.setAttribute('fill', 'none');
-  ghost.setAttribute('stroke-width', '1');
+  ghost.setAttribute('stroke-width', '1.5');
   gLayer.appendChild(ghost);
 }
 
@@ -360,11 +445,13 @@ function resetLab() {
   document.getElementById('ghostLayer').innerHTML = '';
 }
 
-setupSliders();
 createClubButtons();
+updateDerivedValues();
+updatePhysics(); 
 </script>
 </body>
 </html>
+
 
 
 
