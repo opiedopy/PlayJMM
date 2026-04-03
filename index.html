@@ -6,7 +6,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>JMMLab23</title>
+<title>JMMLab24</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@400;600&display=swap');
 
@@ -122,7 +122,7 @@
 <body>
 
 <div style="position: relative; z-index: 10;">
-  <h2>⛳ JMM Club Lab 23</h2>
+  <h2>⛳ JMM Club Lab 24</h2>
   <div class="subtitle">Live Aero Physics • Asheville NC (2,165')</div>
 
   <div class="lab-hud">
@@ -194,8 +194,8 @@
         <input type="range" id="ballType" min="1" max="5" step="1" value="1">
       </div>
       <div class="slider-box">
-        <div class="slider-label"><span>Environment</span> <span class="slider-val" id="envTypeVal">Standard</span></div>
-        <input type="range" id="envType" min="1" max="5" step="1" value="2">
+        <div class="slider-label"><span>Environment</span> <span class="slider-val" id="envTypeVal">Cool</span></div>
+        <input type="range" id="envType" min="1" max="4" step="1" value="2">
       </div>
       <div class="slider-box">
         <div class="slider-label"><span>Turf Firm</span> <span class="slider-val" id="turfFirmnessVal">0.40</span></div>
@@ -238,12 +238,12 @@ const ballProfiles = [
   { name: "Scuffed", cd: 0.32, cl: 0.11 }
 ];
 
+// ASHEVILLE ALTITUDE PRESETS (2,165')
 const envProfiles = [
-  { name: "Cold/Dense", rho: 1.22 },
-  { name: "Standard", rho: 1.14 }, // AVL Base
-  { name: "Warm", rho: 1.10 },
-  { name: "Hot/Thin", rho: 1.06 },
-  { name: "High Alt", rho: 0.98 }
+  { name: "Cold", rho: 1.18 }, // ~40F at AVL
+  { name: "Cool", rho: 1.14 }, // ~60F at AVL (Base)
+  { name: "Warm", rho: 1.10 }, // ~80F at AVL
+  { name: "Hot",  rho: 1.06 }  // ~100F at AVL
 ];
 
 let selectedClub = clubs[0];
@@ -253,7 +253,9 @@ const BALL_MASS_KG = 0.04593;
 const sliderIds = ['clubSpeed', 'smashFactor', 'staticLoft', 'shaftLean', 'aoa', 'spinRate', 'windSpeed', 'ballType', 'envType', 'turfFirmness', 'turfFriction'];
 
 sliderIds.forEach(id => {
-  document.getElementById(id).addEventListener('input', e => {
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.addEventListener('input', e => {
     let val = parseFloat(e.target.value);
     const valEl = document.getElementById(id + 'Val');
     
@@ -451,6 +453,7 @@ updatePhysics();
 </script>
 </body>
 </html>
+
 
 
 
