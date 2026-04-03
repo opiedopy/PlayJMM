@@ -112,7 +112,27 @@
     box-shadow: 0 0 8px rgba(0,0,0,0.5);
   }
 
-  .btn-row { display: flex; gap: 8px; }
+  /* Minimal styling for new dropdowns – matches slider aesthetic */
+  select {
+    width: 100%;
+    background: rgba(255,255,255,0.1);
+    color: var(--parchment);
+    border: none;
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.9rem;
+    outline: none;
+  }
+
+  .info-icon {
+    cursor: help;
+    font-size: 0.8rem;
+    color: var(--brass);
+    margin-left: 4px;
+  }
+
+  .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
   .btn { flex: 1; padding: 12px; border: none; border-radius: 6px; font-family: 'Montserrat', sans-serif; font-size: 0.85rem; cursor: pointer; text-transform: uppercase; font-weight: 700; letter-spacing: 1px; transition: transform 0.1s; }
   .btn-compare { background: var(--grass); color: white; border: 1px solid #4ade80; }
   .btn-reset { background: #4a1e1e; color: white; border: 1px solid #f87171; }
@@ -123,7 +143,7 @@
 
 <div style="position: relative; z-index: 10;">
   <h2>⛳ JMM Club Lab 24</h2>
-  <div class="subtitle">Live Aero Physics • Asheville NC (2,165')</div>
+  <div class="subtitle">Live Aero Physics • Asheville NC (2,165') • Foresight Sports Falcon reference</div>
 
   <div class="lab-hud">
     <div class="hud-stat"><div class="hud-label">Carry</div><div class="hud-val"><span id="valCarry">0</span><span class="hud-unit">yd</span></div></div>
@@ -166,21 +186,21 @@
         <input type="range" id="staticLoft" min="8" max="60" step="0.5" value="10.5">
       </div>
       <div class="slider-box">
-        <div class="slider-label"><span>Shaft Lean</span> <span class="slider-val" id="shaftLeanVal">0.0°</span></div>
+        <div class="slider-label"><span>Shaft Lean</span> <span class="slider-val" id="shaftLeanVal">0.0°</span><span class="info-icon" title="Forward lean (-) delofts the clubhead → lower launch angle and lower spin">ℹ</span></div>
         <input type="range" id="shaftLean" min="-10" max="10" step="0.1" value="0">
       </div>
       <div class="slider-box">
-        <div class="slider-label"><span>AoA</span> <span class="slider-val" id="aoaVal">2.0°</span></div>
+        <div class="slider-label"><span>AoA</span> <span class="slider-val" id="aoaVal">2.0°</span><span class="info-icon" title="Angle of Attack: Positive = hitting up on the ball (higher launch, lower spin)">ℹ</span></div>
         <input type="range" id="aoa" min="-10" max="8" step="0.1" value="2">
       </div>
       <div class="slider-box">
-        <div class="slider-label"><span>Dyn Loft</span> <span class="slider-val" id="dynLoftVal">10.5°</span></div>
+        <div class="slider-label"><span>Dyn Loft</span> <span class="slider-val" id="dynLoftVal">10.5°</span><span class="info-icon" title="Dynamic loft at impact (Static Loft – Shaft Lean): directly drives launch angle and spin">ℹ</span></div>
         <input type="range" id="dynLoft" min="5" max="60" step="0.5" value="10.5" disabled style="opacity:0.5">
       </div>
       <div class="slider-box">
         <div class="slider-label">
           <span>Backspin <span style="color:#aaa; font-size:0.5rem;">(SL: <span id="spinLoftVal">8.5</span>°)</span></span>
-          <span class="slider-val" id="spinRateVal">2400</span>
+          <span class="slider-val" id="spinRateVal">2400</span><span class="info-icon" title="Spin Loft = Dynamic Loft – AoA: the primary driver of backspin rate">ℹ</span>
         </div>
         <input type="range" id="spinRate" min="500" max="12000" step="100" value="2400">
       </div>
@@ -189,14 +209,27 @@
         <input type="range" id="windSpeed" min="-40" max="40" value="0">
       </div>
 
+      <!-- Replaced range sliders with dropdowns (exact same grid positions) -->
       <div class="slider-box">
         <div class="slider-label"><span>Ball Model</span> <span class="slider-val" id="ballTypeVal">Tour</span></div>
-        <input type="range" id="ballType" min="1" max="5" step="1" value="1">
+        <select id="ballModelSelect">
+          <option value="0" selected>Tour</option>
+          <option value="1">Distance</option>
+          <option value="2">Soft</option>
+          <option value="3">Range</option>
+          <option value="4">Scuffed</option>
+        </select>
       </div>
       <div class="slider-box">
         <div class="slider-label"><span>Environment</span> <span class="slider-val" id="envTypeVal">Cool</span></div>
-        <input type="range" id="envType" min="1" max="4" step="1" value="2">
+        <select id="envSelect">
+          <option value="0">Cold</option>
+          <option value="1" selected>Cool</option>
+          <option value="2">Warm</option>
+          <option value="3">Hot</option>
+        </select>
       </div>
+
       <div class="slider-box">
         <div class="slider-label"><span>Turf Firm</span> <span class="slider-val" id="turfFirmnessVal">0.40</span></div>
         <input type="range" id="turfFirmness" min="0.10" max="0.90" step="0.05" value="0.40">
@@ -211,11 +244,27 @@
   <div class="btn-row">
     <button class="btn btn-compare" onclick="freezeArc()">Freeze Arc</button>
     <button class="btn btn-reset" onclick="resetLab()">Clear</button>
+    <button class="btn" onclick="loadUSGAPreset()" style="background:#2d6a4f;color:white;border:1px solid #4ade80;">USGA Good Amateur</button>
+    <button class="btn" onclick="saveSetup()" style="background:var(--brass);color:var(--wood);">Save Setup</button>
+    <button class="btn" onclick="loadSetup()" style="background:var(--brass);color:var(--wood);">Load Setup</button>
     <button class="btn btn-details" onclick="window.location.href='details.html'">Details</button>
   </div>
 </div>
 
 <script>
+/* CONFIG – all key physics constants (purely organizational) */
+const CONFIG = {
+  BALL_MASS_KG: 0.04593,      // Official golf ball mass (kg)
+  BALL_AREA_M2: 0.001432,     // Cross-sectional area of ball (m²)
+  GRAVITY: 9.796,             // Gravity at Asheville altitude (2,165 ft)
+  DT: 0.015,                  // Simulation timestep (seconds) – balances speed vs accuracy
+  YARDS_PER_METER: 1.09361,   // m → yards conversion
+  MPH_TO_MS: 0.44704,         // mph → m/s conversion
+  SCALE_X: 0.95,              // SVG horizontal scaling for trajectory
+  SCALE_Y: 2.0,               // SVG vertical scaling for trajectory
+  // Foresight Sports Falcon reference: launch monitor used for real-world input validation (no live connection)
+};
+
 const clubs = [
   {name: "DRIVER", id: "dr", speed: 110, smash: 1.48, loft: 10.5, lean: -2.5, spin: 2400, aoa: 2},
   {name: "3-WOOD", id: "3w", speed: 104, smash: 1.45, loft: 15.0, lean: -1.0, spin: 3200, aoa: 0},
@@ -229,7 +278,7 @@ const clubs = [
   {name: "PW",     id: "pw", speed: 73,  smash: 1.20, loft: 44.0, lean: 5.0, spin: 9500, aoa: -5}
 ];
 
-// DATA PROFILES
+// DATA PROFILES (unchanged)
 const ballProfiles = [
   { name: "Tour", cd: 0.23, cl: 0.16 },
   { name: "Distance", cd: 0.21, cl: 0.13 },
@@ -238,81 +287,135 @@ const ballProfiles = [
   { name: "Scuffed", cd: 0.32, cl: 0.11 }
 ];
 
-// ASHEVILLE ALTITUDE PRESETS (2,165')
 const envProfiles = [
-  { name: "Cold", rho: 1.18 }, // ~40F at AVL
-  { name: "Cool", rho: 1.14 }, // ~60F at AVL (Base)
-  { name: "Warm", rho: 1.10 }, // ~80F at AVL
-  { name: "Hot",  rho: 1.06 }  // ~100F at AVL
+  { name: "Cold", rho: 1.18 },
+  { name: "Cool", rho: 1.14 },
+  { name: "Warm", rho: 1.10 },
+  { name: "Hot",  rho: 1.06 }
 ];
 
 let selectedClub = clubs[0];
 let currentPathData = "";
-const BALL_MASS_KG = 0.04593;
 
-const sliderIds = ['clubSpeed', 'smashFactor', 'staticLoft', 'shaftLean', 'aoa', 'spinRate', 'windSpeed', 'ballType', 'envType', 'turfFirmness', 'turfFriction'];
+// Cached DOM elements (performance)
+const dom = {
+  clubButtons: document.getElementById('clubButtons'),
+  clubSpeed: document.getElementById('clubSpeed'),
+  clubSpeedVal: document.getElementById('clubSpeedVal'),
+  smashFactor: document.getElementById('smashFactor'),
+  smashFactorVal: document.getElementById('smashFactorVal'),
+  staticLoft: document.getElementById('staticLoft'),
+  staticLoftVal: document.getElementById('staticLoftVal'),
+  shaftLean: document.getElementById('shaftLean'),
+  shaftLeanVal: document.getElementById('shaftLeanVal'),
+  aoa: document.getElementById('aoa'),
+  aoaVal: document.getElementById('aoaVal'),
+  dynLoft: document.getElementById('dynLoft'),
+  dynLoftVal: document.getElementById('dynLoftVal'),
+  spinRate: document.getElementById('spinRate'),
+  spinRateVal: document.getElementById('spinRateVal'),
+  spinLoftVal: document.getElementById('spinLoftVal'),
+  windSpeed: document.getElementById('windSpeed'),
+  windSpeedVal: document.getElementById('windSpeedVal'),
+  windDir: document.getElementById('windDir'),
+  turfFirmness: document.getElementById('turfFirmness'),
+  turfFirmnessVal: document.getElementById('turfFirmnessVal'),
+  turfFriction: document.getElementById('turfFriction'),
+  turfFrictionVal: document.getElementById('turfFrictionVal'),
+  ballModelSelect: document.getElementById('ballModelSelect'),
+  ballTypeVal: document.getElementById('ballTypeVal'),
+  envSelect: document.getElementById('envSelect'),
+  envTypeVal: document.getElementById('envTypeVal'),
+  valCarry: document.getElementById('valCarry'),
+  valTotal: document.getElementById('valTotal'),
+  valLaunch: document.getElementById('valLaunch'),
+  valApex: document.getElementById('valApex'),
+  livePath: document.getElementById('livePath'),
+  ghostLayer: document.getElementById('ghostLayer')
+};
+
+// Simple debounce (100 ms) for buttery-smooth slider dragging
+const debounce = (func, delay = 100) => {
+  let timeout;
+  return (...args) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func(...args), delay);
+  };
+};
+
+const debouncedUpdate = debounce(() => {
+  updateDerivedValues();
+  updatePhysics();
+});
+
+const sliderIds = ['clubSpeed', 'smashFactor', 'staticLoft', 'shaftLean', 'aoa', 'spinRate', 'windSpeed', 'turfFirmness', 'turfFriction'];
 
 sliderIds.forEach(id => {
-  const el = document.getElementById(id);
-  if(!el) return;
+  const el = dom[id];
+  if (!el) return;
   el.addEventListener('input', e => {
     let val = parseFloat(e.target.value);
-    const valEl = document.getElementById(id + 'Val');
-    
+    const valEl = document.getElementById(id + 'Val'); // still using ID for val display (minimal change)
+
     if (id === 'shaftLean') {
       valEl.textContent = (val > 0 ? "+" : "") + val.toFixed(1) + "°";
     } else if (id === 'staticLoft' || id === 'aoa') {
       valEl.textContent = val.toFixed(1) + "°";
-    } else if (id === 'ballType') {
-      valEl.textContent = ballProfiles[val - 1].name;
-    } else if (id === 'envType') {
-      valEl.textContent = envProfiles[val - 1].name;
     } else {
       valEl.textContent = val;
     }
     
     if (id === 'windSpeed') {
-      document.getElementById('windDir').textContent = val > 0 ? '→' : val < 0 ? '←' : '—';
+      dom.windDir.textContent = val > 0 ? '→' : val < 0 ? '←' : '—';
     }
-    updateDerivedValues();
-    updatePhysics();
+    debouncedUpdate();
   });
 });
 
+// Dropdown listeners (replaces old range sliders)
+dom.ballModelSelect.addEventListener('change', () => {
+  dom.ballTypeVal.textContent = ballProfiles[parseInt(dom.ballModelSelect.value)].name;
+  debouncedUpdate();
+});
+dom.envSelect.addEventListener('change', () => {
+  dom.envTypeVal.textContent = envProfiles[parseInt(dom.envSelect.value)].name;
+  debouncedUpdate();
+});
+
 function updateDerivedValues() {
-  const staticLoft = parseFloat(document.getElementById('staticLoft').value);
-  const shaftLean = parseFloat(document.getElementById('shaftLean').value);
-  const aoa = parseFloat(document.getElementById('aoa').value);
+  const staticLoft = parseFloat(dom.staticLoft.value);
+  const shaftLean = parseFloat(dom.shaftLean.value);
+  const aoa = parseFloat(dom.aoa.value);
   
   const dynamicLoft = staticLoft - shaftLean;
   const spinLoft = dynamicLoft - aoa;
   
-  document.getElementById('dynLoft').value = dynamicLoft;
-  document.getElementById('dynLoftVal').textContent = dynamicLoft.toFixed(1) + "°";
-  document.getElementById('spinLoftVal').textContent = spinLoft.toFixed(1);
+  dom.dynLoft.value = dynamicLoft;
+  dom.dynLoftVal.textContent = dynamicLoft.toFixed(1) + "°";
+  dom.spinLoftVal.textContent = spinLoft.toFixed(1);
 }
 
 function applyClubPreset(c) {
   selectedClub = c;
-  document.getElementById('clubSpeed').value = c.speed;
-  document.getElementById('clubSpeedVal').textContent = c.speed;
-  document.getElementById('smashFactor').value = c.smash;
-  document.getElementById('smashFactorVal').textContent = c.smash.toFixed(2);
-  document.getElementById('staticLoft').value = c.loft;
-  document.getElementById('staticLoftVal').textContent = c.loft.toFixed(1) + "°";
-  document.getElementById('shaftLean').value = c.lean;
-  document.getElementById('shaftLeanVal').textContent = (c.lean > 0 ? "+" : "") + c.lean.toFixed(1) + "°";
-  document.getElementById('aoa').value = c.aoa;
-  document.getElementById('aoaVal').textContent = c.aoa.toFixed(1) + "°";
-  document.getElementById('spinRate').value = c.spin;
-  document.getElementById('spinRateVal').textContent = c.spin;
+  dom.clubSpeed.value = c.speed;
+  dom.clubSpeedVal.textContent = c.speed;
+  dom.smashFactor.value = c.smash;
+  dom.smashFactorVal.textContent = c.smash.toFixed(2);
+  dom.staticLoft.value = c.loft;
+  dom.staticLoftVal.textContent = c.loft.toFixed(1) + "°";
+  dom.shaftLean.value = c.lean;
+  dom.shaftLeanVal.textContent = (c.lean > 0 ? "+" : "") + c.lean.toFixed(1) + "°";
+  dom.aoa.value = c.aoa;
+  dom.aoaVal.textContent = c.aoa.toFixed(1) + "°";
+  dom.spinRate.value = c.spin;
+  dom.spinRateVal.textContent = c.spin;
   
   updateDerivedValues();
   updatePhysics();
 }
 
 function createClubButtons() {
-  const container = document.getElementById('clubButtons');
+  const container = dom.clubButtons;
   container.innerHTML = '';
   clubs.forEach(c => {
     const b = document.createElement('button');
@@ -327,39 +430,110 @@ function createClubButtons() {
   });
 }
 
-function updatePhysics() {
-  const speedMph = parseFloat(document.getElementById('clubSpeed').value);
-  const smash = parseFloat(document.getElementById('smashFactor').value);
-  const dynLoft = parseFloat(document.getElementById('dynLoft').value);
-  const attAngle = parseFloat(document.getElementById('aoa').value);
-  
-  const launchDeg = (dynLoft * 0.85) + (attAngle * 0.1);
-  document.getElementById('valLaunch').textContent = launchDeg.toFixed(1);
+// USGA Good Amateur Preset (Category 1 male driver averages)
+function loadUSGAPreset() {
+  dom.clubSpeed.value = 100.5;
+  dom.clubSpeedVal.textContent = 100.5;
+  dom.smashFactor.value = 1.43;
+  dom.smashFactorVal.textContent = '1.43';
+  dom.staticLoft.value = 10.5;
+  dom.staticLoftVal.textContent = '10.5°';
+  dom.shaftLean.value = -2.5;
+  dom.shaftLeanVal.textContent = '-2.5°';
+  dom.aoa.value = 0.4;
+  dom.aoaVal.textContent = '0.4°';
+  dom.spinRate.value = 3274;
+  dom.spinRateVal.textContent = 3274;
+  updateDerivedValues();
+  updatePhysics();
+}
 
-  const backspin = parseFloat(document.getElementById('spinRate').value);
-  const windMph = parseFloat(document.getElementById('windSpeed').value);
+// LocalStorage save/load
+function saveSetup() {
+  const setup = {
+    clubSpeed: parseFloat(dom.clubSpeed.value),
+    smashFactor: parseFloat(dom.smashFactor.value),
+    staticLoft: parseFloat(dom.staticLoft.value),
+    shaftLean: parseFloat(dom.shaftLean.value),
+    aoa: parseFloat(dom.aoa.value),
+    spinRate: parseFloat(dom.spinRate.value),
+    windSpeed: parseFloat(dom.windSpeed.value),
+    ballModel: parseInt(dom.ballModelSelect.value),
+    envType: parseInt(dom.envSelect.value),
+    turfFirmness: parseFloat(dom.turfFirmness.value),
+    turfFriction: parseFloat(dom.turfFriction.value)
+  };
+  localStorage.setItem('jmmLabSetup', JSON.stringify(setup));
+  alert('Current setup saved to browser!');
+}
+
+function loadSetup() {
+  const saved = localStorage.getItem('jmmLabSetup');
+  if (!saved) {
+    alert('No saved setup found.');
+    return;
+  }
+  const setup = JSON.parse(saved);
+  dom.clubSpeed.value = setup.clubSpeed;
+  dom.clubSpeedVal.textContent = setup.clubSpeed;
+  dom.smashFactor.value = setup.smashFactor;
+  dom.smashFactorVal.textContent = setup.smashFactor.toFixed(2);
+  dom.staticLoft.value = setup.staticLoft;
+  dom.staticLoftVal.textContent = setup.staticLoft.toFixed(1) + "°";
+  dom.shaftLean.value = setup.shaftLean;
+  dom.shaftLeanVal.textContent = (setup.shaftLean > 0 ? "+" : "") + setup.shaftLean.toFixed(1) + "°";
+  dom.aoa.value = setup.aoa;
+  dom.aoaVal.textContent = setup.aoa.toFixed(1) + "°";
+  dom.spinRate.value = setup.spinRate;
+  dom.spinRateVal.textContent = setup.spinRate;
+  dom.windSpeed.value = setup.windSpeed;
+  dom.windSpeedVal.textContent = setup.windSpeed;
+  dom.windDir.textContent = setup.windSpeed > 0 ? '→' : setup.windSpeed < 0 ? '←' : '—';
+  dom.ballModelSelect.value = setup.ballModel;
+  dom.ballTypeVal.textContent = ballProfiles[setup.ballModel].name;
+  dom.envSelect.value = setup.envType;
+  dom.envTypeVal.textContent = envProfiles[setup.envType].name;
+  dom.turfFirmness.value = setup.turfFirmness;
+  dom.turfFirmnessVal.textContent = setup.turfFirmness;
+  dom.turfFriction.value = setup.turfFriction;
+  dom.turfFrictionVal.textContent = setup.turfFriction;
+  updateDerivedValues();
+  updatePhysics();
+}
+
+function updatePhysics() {
+  const speedMph = parseFloat(dom.clubSpeed.value);
+  const smash = parseFloat(dom.smashFactor.value);
+  const dynLoft = parseFloat(dom.dynLoft.value);
+  const attAngle = parseFloat(dom.aoa.value);
   
-  // PULL FROM PROFILES
-  const ballIdx = parseInt(document.getElementById('ballType').value) - 1;
-  const envIdx = parseInt(document.getElementById('envType').value) - 1;
+  // 85/15 launch formula (Foresight Falcon + TrackMan compatible)
+  const launchDeg = (dynLoft * 0.85) + (attAngle * 0.15);
+  dom.valLaunch.textContent = launchDeg.toFixed(1);
+
+  const backspin = parseFloat(dom.spinRate.value);
+  const windMph = parseFloat(dom.windSpeed.value);
+  
+  const ballIdx = parseInt(dom.ballModelSelect.value);
+  const envIdx = parseInt(dom.envSelect.value);
   const Cd = ballProfiles[ballIdx].cd;
   const Cl_base = ballProfiles[ballIdx].cl;
   const rho = envProfiles[envIdx].rho;
 
-  const firmness = parseFloat(document.getElementById('turfFirmness').value);
-  const friction = parseFloat(document.getElementById('turfFriction').value);
+  const firmness = parseFloat(dom.turfFirmness.value);
+  const friction = parseFloat(dom.turfFriction.value);
 
-  const g = 9.796;   
-  const area = 0.001432; 
+  const g = CONFIG.GRAVITY;   
+  const area = CONFIG.BALL_AREA_M2; 
 
-  const v0 = speedMph * 0.44704 * smash; 
+  const v0 = speedMph * CONFIG.MPH_TO_MS * smash; 
   const rad = launchDeg * Math.PI / 180;
   let vx = v0 * Math.cos(rad);
   let vy = v0 * Math.sin(rad);
-  const v_wind = windMph * 0.44704; 
+  const v_wind = windMph * CONFIG.MPH_TO_MS; 
 
   let x = 0, y = 0, apex = 0;
-  const dt = 0.015; 
+  const dt = CONFIG.DT; 
   const pts = [];
   let carry = 0;
   let hasLanded = false;
@@ -374,13 +548,13 @@ function updatePhysics() {
     if (y > 0 || !hasLanded) {
       if (Vair > 0) {
         let Fd = 0.5 * rho * Vair * Vair * Cd * area;
-        let ad = Fd / BALL_MASS_KG;
+        let ad = Fd / CONFIG.BALL_MASS_KG;
         let ad_x = -ad * (Vair_x / Vair);
         let ad_y = -ad * (Vair_y / Vair);
         
         let Cl = Cl_base * (backspin / 2200);
         let Fl = 0.5 * rho * Vair * Vair * Cl * area;
-        let al = Fl / BALL_MASS_KG;
+        let al = Fl / CONFIG.BALL_MASS_KG;
         let al_x = -al * (Vair_y / Vair); 
         let al_y = al * (Vair_x / Vair);
         
@@ -396,7 +570,7 @@ function updatePhysics() {
     
     if (y <= 0) {
       if (!hasLanded) {
-        carry = x * 1.09361;
+        carry = x * CONFIG.YARDS_PER_METER;
         hasLanded = true;
       }
       y = 0;
@@ -413,38 +587,37 @@ function updatePhysics() {
     }
   }
   pts.push({ x: x, y: y });
-  drawPath(pts, carry, x * 1.09361, apex * 1.09361);
+  drawPath(pts, carry, x * CONFIG.YARDS_PER_METER, apex * CONFIG.YARDS_PER_METER);
 }
 
 function drawPath(pts, carry, total, apex) {
-  const scaleX = 0.95; 
-  const scaleY = 2.0;
+  const scaleX = CONFIG.SCALE_X; 
+  const scaleY = CONFIG.SCALE_Y;
   const startX = 11;
   const startY = 185;
   const d = pts.map((p, i) => {
-    const sx = startX + ((p.x * 1.09361) * scaleX);
-    const sy = startY - ((p.y * 1.09361) * scaleY);
+    const sx = startX + ((p.x * CONFIG.YARDS_PER_METER) * scaleX);
+    const sy = startY - ((p.y * CONFIG.YARDS_PER_METER) * scaleY);
     return `${i === 0 ? 'M' : 'L'}${sx},${sy}`;
   }).join(' ');
   currentPathData = d;
-  document.getElementById('livePath').setAttribute('d', d);
-  document.getElementById('valCarry').textContent = Math.round(carry);
-  document.getElementById('valTotal').textContent = Math.round(total);
-  document.getElementById('valApex').textContent = Math.round(apex);
+  dom.livePath.setAttribute('d', d);
+  dom.valCarry.textContent = Math.round(carry);
+  dom.valTotal.textContent = Math.round(total);
+  dom.valApex.textContent = Math.round(apex);
 }
 
 function freezeArc() {
-  const gLayer = document.getElementById('ghostLayer');
   const ghost = document.createElementNS("http://www.w3.org/2000/svg", "path");
   ghost.setAttribute('d', currentPathData);
   ghost.setAttribute('stroke', 'rgba(212, 175, 55, 0.25)');
   ghost.setAttribute('fill', 'none');
   ghost.setAttribute('stroke-width', '1.5');
-  gLayer.appendChild(ghost);
+  dom.ghostLayer.appendChild(ghost);
 }
 
 function resetLab() {
-  document.getElementById('ghostLayer').innerHTML = '';
+  dom.ghostLayer.innerHTML = '';
 }
 
 createClubButtons();
