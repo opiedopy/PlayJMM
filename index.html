@@ -6,7 +6,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>JMMLab20</title>
+<title>JMMLab21</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@400;600&display=swap');
 
@@ -122,7 +122,7 @@
 <body>
 
 <div style="position: relative; z-index: 10;">
-  <h2>⛳ JMM Club Lab 20</h2>
+  <h2>⛳ JMM Club Lab 21</h2>
   <div class="subtitle">Live Aero Physics • Asheville NC (2,165')</div>
 
   <div class="lab-hud">
@@ -166,20 +166,20 @@
         <input type="range" id="staticLoft" min="8" max="60" step="0.5" value="10.5">
       </div>
       <div class="slider-box">
-        <div class="slider-label"><span>Shaft Lean</span> <span class="slider-val" id="shaftLeanVal">-3.0°</span></div>
-        <input type="range" id="shaftLean" min="-8" max="2" step="0.1" value="-3">
+        <div class="slider-label"><span>Shaft Lean</span> <span class="slider-val" id="shaftLeanVal">0.0°</span></div>
+        <input type="range" id="shaftLean" min="-10" max="10" step="0.1" value="0">
       </div>
       <div class="slider-box">
         <div class="slider-label"><span>AoA</span> <span class="slider-val" id="aoaVal">2.0°</span></div>
         <input type="range" id="aoa" min="-10" max="8" step="0.1" value="2">
       </div>
       <div class="slider-box">
-        <div class="slider-label"><span>Dyn Loft</span> <span class="slider-val" id="dynLoftVal">7.5°</span></div>
-        <input type="range" id="dynLoft" min="5" max="60" step="0.5" value="7.5" disabled style="opacity:0.5">
+        <div class="slider-label"><span>Dyn Loft</span> <span class="slider-val" id="dynLoftVal">10.5°</span></div>
+        <input type="range" id="dynLoft" min="5" max="60" step="0.5" value="10.5" disabled style="opacity:0.5">
       </div>
       <div class="slider-box">
         <div class="slider-label">
-          <span>Backspin <span style="color:#aaa; font-size:0.5rem;">(SL: <span id="spinLoftVal">9.5</span>°)</span></span>
+          <span>Backspin <span style="color:#aaa; font-size:0.5rem;">(SL: <span id="spinLoftVal">8.5</span>°)</span></span>
           <span class="slider-val" id="spinRateVal">2400</span>
         </div>
         <input type="range" id="spinRate" min="500" max="12000" step="100" value="2400">
@@ -216,16 +216,16 @@
 
 <script>
 const clubs = [
-  {name: "DRIVER", id: "dr", speed: 110, smash: 1.48, loft: 10.5, spin: 2400, aoa: 2},
-  {name: "3-WOOD", id: "3w", speed: 104, smash: 1.45, loft: 15.0, spin: 3200, aoa: 0},
-  {name: "5-WOOD", id: "5w", speed: 100, smash: 1.42, loft: 18.5, spin: 3500, aoa: -1},
-  {name: "4-IRON", id: "4i", speed: 94,  smash: 1.40, loft: 22.0, spin: 4200, aoa: -2},
-  {name: "5-IRON", id: "5i", speed: 91,  smash: 1.37, loft: 25.0, spin: 4800, aoa: -3},
-  {name: "6-IRON", id: "6i", speed: 88,  smash: 1.34, loft: 28.0, spin: 5600, aoa: -3},
-  {name: "7-IRON", id: "7i", speed: 85,  smash: 1.31, loft: 32.0, spin: 6500, aoa: -4},
-  {name: "8-IRON", id: "8i", speed: 81,  smash: 1.28, loft: 36.0, spin: 7500, aoa: -4},
-  {name: "9-IRON", id: "9i", speed: 77,  smash: 1.25, loft: 40.0, spin: 8500, aoa: -5},
-  {name: "PW",     id: "pw", speed: 73,  smash: 1.20, loft: 44.0, spin: 9500, aoa: -5}
+  {name: "DRIVER", id: "dr", speed: 110, smash: 1.48, loft: 10.5, lean: -2.5, spin: 2400, aoa: 2},
+  {name: "3-WOOD", id: "3w", speed: 104, smash: 1.45, loft: 15.0, lean: -1.0, spin: 3200, aoa: 0},
+  {name: "5-WOOD", id: "5w", speed: 100, smash: 1.42, loft: 18.5, lean: 0.0, spin: 3500, aoa: -1},
+  {name: "4-IRON", id: "4i", speed: 94,  smash: 1.40, loft: 22.0, lean: 2.0, spin: 4200, aoa: -2},
+  {name: "5-IRON", id: "5i", speed: 91,  smash: 1.37, loft: 25.0, lean: 2.5, spin: 4800, aoa: -3},
+  {name: "6-IRON", id: "6i", speed: 88,  smash: 1.34, loft: 28.0, lean: 3.0, spin: 5600, aoa: -3},
+  {name: "7-IRON", id: "7i", speed: 85,  smash: 1.31, loft: 32.0, lean: 3.5, spin: 6500, aoa: -4},
+  {name: "8-IRON", id: "8i", speed: 81,  smash: 1.28, loft: 36.0, lean: 4.0, spin: 7500, aoa: -4},
+  {name: "9-IRON", id: "9i", speed: 77,  smash: 1.25, loft: 40.0, lean: 4.5, spin: 8500, aoa: -5},
+  {name: "PW",     id: "pw", speed: 73,  smash: 1.20, loft: 44.0, lean: 5.0, spin: 9500, aoa: -5}
 ];
 
 let selectedClub = clubs[0];
@@ -236,11 +236,16 @@ const sliderIds = ['clubSpeed', 'smashFactor', 'staticLoft', 'shaftLean', 'aoa',
 sliderIds.forEach(id => {
   document.getElementById(id).addEventListener('input', e => {
     let val = parseFloat(e.target.value);
-    if (id === 'staticLoft' || id === 'shaftLean' || id === 'aoa') {
-      document.getElementById(id + 'Val').textContent = val.toFixed(1) + "°";
+    const valEl = document.getElementById(id + 'Val');
+    
+    if (id === 'shaftLean') {
+      valEl.textContent = (val > 0 ? "+" : "") + val.toFixed(1) + "°";
+    } else if (id === 'staticLoft' || id === 'aoa') {
+      valEl.textContent = val.toFixed(1) + "°";
     } else {
-      document.getElementById(id + 'Val').textContent = val;
+      valEl.textContent = val;
     }
+    
     if (id === 'windSpeed') {
       document.getElementById('windDir').textContent = val > 0 ? '→' : val < 0 ? '←' : '—';
     }
@@ -253,8 +258,11 @@ function updateDerivedValues() {
   const staticLoft = parseFloat(document.getElementById('staticLoft').value);
   const shaftLean = parseFloat(document.getElementById('shaftLean').value);
   const aoa = parseFloat(document.getElementById('aoa').value);
-  const dynamicLoft = staticLoft + shaftLean;
+  
+  // Logic Fix: Dynamic Loft = Static Loft - Shaft Lean
+  const dynamicLoft = staticLoft - shaftLean;
   const spinLoft = dynamicLoft - aoa;
+  
   document.getElementById('dynLoft').value = dynamicLoft;
   document.getElementById('dynLoftVal').textContent = dynamicLoft.toFixed(1) + "°";
   document.getElementById('spinLoftVal').textContent = spinLoft.toFixed(1);
@@ -268,10 +276,16 @@ function applyClubPreset(c) {
   document.getElementById('smashFactorVal').textContent = c.smash.toFixed(2);
   document.getElementById('staticLoft').value = c.loft;
   document.getElementById('staticLoftVal').textContent = c.loft.toFixed(1) + "°";
+  
+  // Preset Shaft Lean Logic
+  document.getElementById('shaftLean').value = c.lean;
+  document.getElementById('shaftLeanVal').textContent = (c.lean > 0 ? "+" : "") + c.lean.toFixed(1) + "°";
+  
   document.getElementById('aoa').value = c.aoa;
   document.getElementById('aoaVal').textContent = c.aoa.toFixed(1) + "°";
   document.getElementById('spinRate').value = c.spin;
   document.getElementById('spinRateVal').textContent = c.spin;
+  
   updateDerivedValues();
   updatePhysics();
 }
@@ -298,7 +312,6 @@ function updatePhysics() {
   const dynLoft = parseFloat(document.getElementById('dynLoft').value);
   const attAngle = parseFloat(document.getElementById('aoa').value);
   
-  // Adjusted: higher coefficient for modern ball flight
   const launchDeg = (dynLoft * 0.85) + (attAngle * 0.1);
   document.getElementById('valLaunch').textContent = launchDeg.toFixed(1);
 
@@ -309,7 +322,7 @@ function updatePhysics() {
   const firmness = parseFloat(document.getElementById('turfFirmness').value);
   const friction = parseFloat(document.getElementById('turfFriction').value);
 
-  const rho = 1.14;  // Adjusted for Asheville Altitude
+  const rho = 1.14;  
   const g = 9.796;   
   const area = 0.001432; 
 
@@ -339,7 +352,6 @@ function updatePhysics() {
         let ad_x = -ad * (Vair_x / Vair);
         let ad_y = -ad * (Vair_y / Vair);
         
-        // Lift normalization at 2200rpm for a more efficient glide
         let Cl = Cl_base * (backspin / 2200);
         let Fl = 0.5 * rho * Vair * Vair * Cl * area;
         let al = Fl / BALL_MASS_KG;
@@ -415,6 +427,7 @@ updatePhysics();
 </script>
 </body>
 </html>
+
 
 
 
