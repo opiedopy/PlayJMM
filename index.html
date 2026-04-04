@@ -6,7 +6,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>JMMLabG5</title>
+<title>JMMLabG6</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@400;600&display=swap');
 
@@ -134,7 +134,7 @@
 <body>
 
 <div style="position: relative; z-index: 10;">
-  <h2>⛳ JMM Club Lab G5</h2>
+  <h2>⛳ JMM Club Lab G6</h2>
   <div class="subtitle">Live Aero Physics • Asheville NC (2,165') • Foresight Sports Falcon reference</div>
 
   <div class="lab-hud">
@@ -487,36 +487,30 @@ function updatePhysics() {
         carry = x * CONFIG.YARDS_PER_METER;
         hasLanded = true;
         
-        // --- NEW PHYSICS REFACTOR ---
-        const ballSpeedAtLanding = Math.sqrt(vx * vx + vy * vy);
+        // Direct braking based on landing angle and spin
         const landingAngleRad = Math.abs(Math.atan2(vy, vx));
         
-        // Spin Engagement: high landing angle + high spin = more "grab"
-        const spinEngagement = Math.sin(landingAngleRad) * backspin;
-        
-        // Bounce behavior: Vertical energy loss (firmness)
+        // Vertical bounce
         vy = -vy * firmness;
         
-        // Roll Calculation: Spin opposes forward motion (braking effect)
-        const spinBraking = spinEngagement * friction * 0.00003; 
-        const rollTimeFactor = 1.2;
+        // Calculate braking force: spin scales against 10k RPM, Sin(angle) means steep = more bite
+        const spinEffectiveness = Math.sin(landingAngleRad) * (backspin / 10000);
+        const brakingForce = vx * friction * spinEffectiveness;
         
-        const rollDistanceMeters = ((vx * rollTimeFactor) / CONFIG.YARDS_PER_METER) - (spinBraking / CONFIG.YARDS_PER_METER);
+        // Subtract from forward velocity immediately
+        vx = vx - (brakingForce * 1.5); 
         
-        // Cap spin-back at ~3 yards
-        const cappedRollMeters = Math.max(rollDistanceMeters, -3 / CONFIG.YARDS_PER_METER);
-        
-        // Adjust horizontal velocity based on roll result to update final total
-        vx = (cappedRollMeters / dt) / 50; 
+        // Cap spin-back at a realistic crawl (negative vx)
+        const maxBackspinVelocity = -2.0; 
+        if (vx < maxBackspinVelocity) vx = maxBackspinVelocity;
       }
       
       y = 0;
-      // Secondary dampening for final resting state
-      if (Math.abs(vy) < 0.5) vy = 0;
-      vx *= 0.95; // Final roll friction decay
-      if (Math.abs(vx) < 0.1) vx = 0;
+      // Friction rapidly bleeds off remaining speed while on ground
+      vx *= (0.8 * friction); 
+      if (Math.abs(vx) < 0.2) vx = 0;
       
-      if (vx === 0 && vy === 0) break;
+      if (vx === 0 && Math.abs(vy) < 0.5) break;
     }
   }
   pts.push({ x: x, y: y });
@@ -559,6 +553,7 @@ updatePhysics();
 </script>
 </body>
 </html>
+
 
 
 
